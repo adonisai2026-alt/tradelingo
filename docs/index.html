@@ -356,8 +356,8 @@
         <p><span data-lang="zh">Edge 用户打开 <code>edge://extensions</code>，开关在左侧。</span><span data-lang="en">On Edge, go to <code>edge://extensions</code>; the switch is on the left.</span></p>
       </li>
       <li>
-        <h3><span data-lang="zh">填 API Key，刷新 WhatsApp</span><span data-lang="en">Add an API key, reload WhatsApp</span></h3>
-        <p><span data-lang="zh">点工具栏上的 TradeLingo 图标，粘贴至少一个<a href="#engines">翻译引擎的 Key</a>，点“保存并测试”，看到“连接成功”后刷新 WhatsApp 网页版。</span><span data-lang="en">Click the TradeLingo icon, paste at least one <a href="#engines">engine key</a>, click 保存并测试 (Save &amp; test), and once it says connected, reload WhatsApp Web.</span></p>
+        <h3><span data-lang="zh">跟着向导填 API Key</span><span data-lang="en">Follow the setup wizard</span></h3>
+        <p><span data-lang="zh">装好后会自动打开使用向导：选一个<a href="#engines">翻译引擎</a>，照着步骤申请并粘贴 Key，点“保存并测试”，看到“连接成功”后刷新 WhatsApp 网页版。</span><span data-lang="en">A setup wizard opens automatically: pick a <a href="#engines">translation engine</a>, follow the steps to get and paste a key, click 保存并测试 (Save &amp; test), and once it says connected, reload WhatsApp Web.</span></p>
       </li>
     </ol>
     <div class="install-more">
@@ -449,7 +449,7 @@
           <strong><span data-lang="zh">只存在你电脑的浏览器里</span><span data-lang="en">Kept only in your browser</span></strong>
           <ul>
             <li><span data-lang="zh">API Key、设置、术语表、快捷话术</span><span data-lang="en">API keys, settings, glossary, quick phrases</span></li>
-            <li><span data-lang="zh">翻译缓存、商机作战卡</span><span data-lang="en">Translation cache, deal battle cards</span></li>
+            <li><span data-lang="zh">翻译缓存、商机作战卡、本月用量</span><span data-lang="en">Translation cache, deal battle cards, monthly usage</span></li>
             <li><span data-lang="zh">客户语言记录（只存聊天编号的哈希值，不存电话或姓名）</span><span data-lang="en">Per-chat languages (a hash of the chat ID only, never phone numbers or names)</span></li>
           </ul>
         </div>
@@ -468,6 +468,10 @@
           <li>
             <strong><span data-lang="zh">提醒和排序在本地完成</span><span data-lang="en">Reminders and ranking stay local</span></strong>
             <span><span data-lang="zh">今日跟进、桌面提醒和每日早报都在你的电脑上计算，不发送到任何地方。客户语言识别用的也是 Chrome 自带的本地功能。</span><span data-lang="en">Today's follow-up, reminders and the digest are computed on your computer and sent nowhere. Language detection uses Chrome's on-device detector.</span></span>
+          </li>
+          <li>
+            <strong><span data-lang="zh">检查更新只读版本号</span><span data-lang="en">Update checks only read a version number</span></strong>
+            <span><span data-lang="zh">每天一次从 GitHub（打不开时用 jsDelivr 镜像）下载公开的版本号文件，不发送你的任何数据，可以在设置里关闭。</span><span data-lang="en">Once a day the extension downloads a public version file from GitHub (or the jsDelivr mirror). None of your data is sent, and you can turn it off in settings.</span></span>
           </li>
           <li>
             <strong><span data-lang="zh">代码全部公开</span><span data-lang="en">All code is public</span></strong>
@@ -494,7 +498,7 @@
       <details>
         <summary><span data-lang="zh">要花钱吗？</span><span data-lang="en">Does it cost anything?</span></summary>
         <div class="ans">
-          <p><span data-lang="zh">插件本身免费、开源。翻译要用你自己申请的 API Key，费用直接付给服务商：DeepL 免费版每月有 50 万字符额度；Qwen-MT 和 DeepSeek 按用量计费，费用很低。翻过的句子会缓存，不重复计费。具体价格以各平台官网为准。</span><span data-lang="en">The extension is free and open source. Translation uses your own API keys, paid directly to the provider: DeepL's free plan includes 500,000 characters a month; Qwen-MT and DeepSeek are pay-as-you-go at low cost. Translations are cached, so the same sentence isn't charged twice. Check each provider's site for current prices.</span></p>
+          <p><span data-lang="zh">插件本身免费、开源。翻译要用你自己申请的 API Key，费用直接付给服务商：DeepL 免费版每月有 50 万字符额度；Qwen-MT 和 DeepSeek 按用量计费，费用很低。翻过的句子会缓存，不重复计费。设置页会显示每个引擎本月用了多少字符，用量心里有数。具体价格以各平台官网为准。</span><span data-lang="en">The extension is free and open source. Translation uses your own API keys, paid directly to the provider: DeepL's free plan includes 500,000 characters a month; Qwen-MT and DeepSeek are pay-as-you-go at low cost. Translations are cached, so the same sentence isn't charged twice. Settings show how many characters each engine used this month. Check each provider's site for current prices.</span></p>
         </div>
       </details>
       <details>
@@ -530,6 +534,7 @@
       <details>
         <summary><span data-lang="zh">怎么升级？换电脑后数据怎么办？</span><span data-lang="en">How do I update, or move to another computer?</span></summary>
         <div class="ans">
+          <p><span data-lang="zh">从 v0.8.0 起，有新版本时插件图标上会出现红色的“新”，设置页顶部有更新内容和下载按钮。</span><span data-lang="en">From v0.8.0, a red 新 badge on the icon tells you when an update is available, and the top of the settings page shows what changed with a download button.</span></p>
           <p><span data-lang="zh">升级：用新下载的文件覆盖原来的 <code>extension</code> 文件夹，在扩展程序页面点插件卡片上的 ⟳，再刷新 WhatsApp。一定要覆盖同一个文件夹，换文件夹加载会丢失已填的 Key 和设置。</span><span data-lang="en">To update, overwrite your existing <code>extension</code> folder with the new files, click ⟳ on the extension card and reload WhatsApp. Always use the same folder: loading from a new one starts with empty settings.</span></p>
           <p><span data-lang="zh">换电脑或换浏览器：在设置页“备份与恢复”导出一个文件，到新环境导入即可，导入时与现有数据合并。</span><span data-lang="en">To move, export a backup from Backup and restore in settings and import it on the new computer or browser; imports merge with existing data.</span></p>
         </div>

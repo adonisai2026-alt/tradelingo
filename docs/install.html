@@ -66,7 +66,7 @@
       <ul class="prep">
         <li><strong><span data-lang="zh">一台电脑</span><span data-lang="en">A computer</span></strong><span><span data-lang="zh">Windows 或 Mac，装有 Chrome 或 Edge。手机上不能用。</span><span data-lang="en">Windows or Mac with Chrome or Edge. It doesn't work on phones.</span></span></li>
         <li><strong><span data-lang="zh">WhatsApp 网页版</span><span data-lang="en">WhatsApp Web</span></strong><span><span data-lang="zh">能在浏览器里打开 web.whatsapp.com 并登录。</span><span data-lang="en">You can open and sign in to web.whatsapp.com.</span></span></li>
-        <li><strong><span data-lang="zh">至少一个 API Key</span><span data-lang="en">At least one API key</span></strong><span><span data-lang="zh">DeepL、Qwen-MT 或 DeepSeek，<a href="./#engines">去哪申请</a>。</span><span data-lang="en">DeepL, Qwen-MT or DeepSeek. <a href="./#engines">Where to get one</a>.</span></span></li>
+        <li><strong><span data-lang="zh">至少一个 API Key</span><span data-lang="en">At least one API key</span></strong><span><span data-lang="zh">DeepL、Qwen-MT 或 DeepSeek。还没有也没关系，装好后的向导会一步步教你申请。</span><span data-lang="en">DeepL, Qwen-MT or DeepSeek. Don't have one yet? The setup wizard walks you through getting one.</span></span></li>
       </ul>
     </div>
   </section>
@@ -155,18 +155,19 @@
       <section class="g-step">
         <div class="g-num" aria-hidden="true">4</div>
         <div class="g-body">
-          <h2><span data-lang="zh">填写 API Key，刷新 WhatsApp</span><span data-lang="en">Add your API key and reload WhatsApp</span></h2>
+          <h2><span data-lang="zh">跟着向导填 API Key，刷新 WhatsApp</span><span data-lang="en">Follow the setup wizard, then reload WhatsApp</span></h2>
           <ol>
-            <li><span data-lang="zh">点工具栏上的 TradeLingo 图标，打开设置页。</span><span data-lang="en">Click the TradeLingo icon on the toolbar to open settings.</span></li>
-            <li><span data-lang="zh">在对应引擎的卡片里粘贴 Key，点“保存并测试”。看到绿色的“连接成功”就可以了。</span><span data-lang="en">Paste your key into the matching engine card and click 保存并测试 (Save &amp; test). A green 连接成功 (connected) means it works.</span></li>
+            <li><span data-lang="zh">装好后会自动打开“欢迎使用 TradeLingo”向导。先选一个翻译引擎，不知道选哪个就用推荐的通义千问（国内手机号或支付宝就能注册）。</span><span data-lang="en">A "Welcome to TradeLingo" wizard opens automatically. Pick a translation engine; if unsure, take the recommended Qwen-MT.</span></li>
+            <li><span data-lang="zh">照着向导里的步骤申请 Key，粘贴进去，点“保存并测试”。看到绿色的“连接成功”，再设置默认语言就完成了。</span><span data-lang="en">Follow the steps in the wizard to get a key, paste it and click 保存并测试 (Save &amp; test). Once it shows a green 连接成功 (connected), set your default languages and you're done.</span></li>
             <li><span data-lang="zh">刷新 WhatsApp 网页版（web.whatsapp.com）。安装或升级后都要刷新一次。</span><span data-lang="en">Reload WhatsApp Web (web.whatsapp.com). Do this after every install or update.</span></li>
+            <li><span data-lang="zh">以后要改 Key 或再加一个引擎：点工具栏上的 TradeLingo 图标打开设置页。向导没有弹出来的话，在设置页点“使用向导”也能打开。</span><span data-lang="en">To change keys or add another engine later, click the TradeLingo icon to open settings. If the wizard didn't open, start it from 使用向导 (Setup wizard) in settings.</span></li>
           </ol>
-          <figure style="margin:18px 0 0;max-width:420px">
-            <a class="zoom" href="screenshots/settings-qwen.webp"><img src="screenshots/settings-qwen.webp" width="736" height="518" loading="lazy"
-              data-alt-zh="设置页的 Qwen-MT 卡片：粘贴 Key、选择模型和地域，点“保存并测试”后显示连接成功"
-              data-alt-en="The Qwen-MT card in settings: paste the key, choose model and region, click Save & test, and it shows connected"
-              alt="设置页的 Qwen-MT 卡片：粘贴 Key、选择模型和地域，点“保存并测试”后显示连接成功"></a>
-            <figcaption><span data-lang="zh">真实截图。Qwen-MT 的地域要和创建 Key 时一致。</span><span data-lang="en">Real screenshot. For Qwen-MT, the region must match where you created the key.</span></figcaption>
+          <figure style="margin:18px 0 0;max-width:560px">
+            <a class="zoom" href="screenshots/setup-wizard.webp"><img src="screenshots/setup-wizard.webp" width="1520" height="1390" loading="lazy"
+              data-alt-zh="使用向导第 2 步：按步骤申请通义千问 Key，粘贴后点“保存并测试”，显示连接成功"
+              data-alt-en="Setup wizard step 2: steps for getting a Qwen-MT key, paste it, click Save & test, and it shows connected"
+              alt="使用向导第 2 步：按步骤申请通义千问 Key，粘贴后点“保存并测试”，显示连接成功"></a>
+            <figcaption><span data-lang="zh">真实截图：使用向导第 2 步。Qwen-MT 的地域要和创建 Key 时一致。</span><span data-lang="en">Real screenshot: step 2 of the setup wizard. For Qwen-MT, the region must match where you created the key.</span></figcaption>
           </figure>
         </div>
       </section>
@@ -220,6 +221,7 @@
         <p><span data-lang="zh">升级不会清除你填好的 Key、术语表、话术和客户语言记录，前提是覆盖同一个文件夹。</span><span data-lang="en">Updating keeps your keys, glossary, phrases and per-chat languages, as long as you overwrite the same folder.</span></p>
       </div>
       <div class="g-body">
+  <div class="tip" style="margin:0 0 18px"><span data-lang="zh"><strong>怎么知道有新版本？</strong>从 v0.8.0 起，插件每天检查一次：有新版本时，工具栏图标上会出现红色的“新”，并弹一次桌面通知；打开设置页，顶部会列出更新内容和下载按钮。v0.8.0 之前的版本没有这个提醒，需要按下面的步骤手动升级一次。</span><span data-lang="en"><strong>How do I know there's a new version?</strong> From v0.8.0 the extension checks once a day. When an update is available, a red 新 badge appears on its icon, one desktop notification pops up, and the top of the settings page shows what changed with a download button. Versions before 0.8.0 don't have this, so update to 0.8.0 once by hand using the steps below.</span></div>
         <ol>
           <li><span data-lang="zh">重新<a href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip">下载 ZIP</a> 并解压。</span><span data-lang="en"><a href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip">Download the ZIP</a> again and unzip it.</span></li>
           <li><span data-lang="zh">把新 <code>extension</code> 文件夹里的所有文件，复制到你原来的插件文件夹里，选择“替换”。</span><span data-lang="en">Copy everything inside the new <code>extension</code> folder into your existing folder and choose Replace.</span></li>

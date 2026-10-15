@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>欢迎使用 TradeLingo</title>
+<style>
+  :root { --bg: #f3f7f6; --card: #fff; --ink: #15302b; --ink2: #5b6a72; --line: #dfe7e4; --accent: #00a884; --accent2: #00866a; --soft: #e7f6f1; --warn: #9a4b00; --err: #c0392b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.65 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 36px 20px 80px; }
+  header { display: flex; align-items: center; gap: 14px; }
+  header img { width: 52px; height: 52px; border-radius: 13px; }
+  h1 { margin: 0; font-size: 26px; }
+  header p { margin: 0; color: var(--ink2); }
+  .steps { display: flex; gap: 8px; margin: 26px 0 18px; }
+  .steps div { flex: 1; font-size: 13px; color: var(--ink2); border-top: 4px solid var(--line); padding-top: 6px; }
+  .steps div.on { color: var(--accent2); border-color: var(--accent); font-weight: 700; }
+  .steps div.done { border-color: var(--accent); }
+  section { background: var(--card); border-radius: 16px; padding: 24px 26px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  section[hidden] { display: none; }
+  h2 { margin: 0 0 6px; font-size: 20px; }
+  .lead { margin: 0 0 18px; color: var(--ink2); }
+  .opts { display: grid; gap: 12px; }
+  .opt { display: grid; grid-template-columns: 22px 1fr; gap: 4px 12px; align-items: start; border: 2px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; }
+  .opt:hover { border-color: #b7d9cf; }
+  .opt.on { border-color: var(--accent); background: var(--soft); }
+  .opt input { margin: 5px 0 0; accent-color: var(--accent); }
+  .opt b { font-size: 16px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+  .t-rec { background: var(--accent); color: #fff; }
+  .t-warn { background: #fff1e0; color: var(--warn); }
+  .opt ul { grid-column: 2; margin: 2px 0 0; padding-left: 18px; color: var(--ink2); font-size: 14px; }
+  .opt ul li.minus { color: var(--warn); }
+  ol.how { margin: 0 0 18px; padding-left: 22px; }
+  ol.how li { margin: 6px 0; }
+  ol.how a { color: var(--accent2); font-weight: 600; }
+  .keybox { display: flex; gap: 8px; flex-wrap: wrap; }
+  .keybox input { flex: 1; min-width: 220px; padding: 10px 12px; border: 1px solid #c9d4d0; border-radius: 10px; font: inherit; }
+  select { padding: 8px 10px; border: 1px solid #c9d4d0; border-radius: 10px; font: inherit; background: #fff; }
+  button { font: inherit; border: none; border-radius: 10px; padding: 10px 18px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.ghost { background: #e9edef; color: #333; font-weight: 500; }
+  .status { min-height: 24px; margin-top: 10px; font-size: 14px; word-break: break-all; }
+  .ok { color: #0b6e4f; } .err { color: var(--err); }
+  .row { display: flex; align-items: center; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+  .row label { min-width: 150px; font-weight: 600; }
+  .hint { color: var(--ink2); font-size: 13px; margin: 4px 0 0; }
+  .note { background: #fff8e8; border: 1px solid #f3d39b; border-radius: 10px; padding: 10px 14px; font-size: 14px; margin-top: 14px; }
+  .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; }
+  .tips { display: grid; gap: 10px; margin: 6px 0 4px; }
+  .tips div { display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: center; }
+  kbd { font: 600 13px/1 ui-monospace, Consolas, monospace; background: var(--soft); color: var(--accent2); border-radius: 8px; padding: 7px 8px; text-align: center; }
+  .big { font-size: 17px; padding: 12px 26px; }
+  .privacy { color: var(--ink2); font-size: 13px; margin-top: 24px; text-align: center; }
+  @media (max-width: 560px) { section { padding: 18px; } .row label { min-width: 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icons/icon128.png" alt="">
+    <div><h1>欢迎使用 TradeLingo</h1><p>3 步设置好，就能在 WhatsApp 网页里看懂、回复各国客户。</p></div>
+  </header>
+
+  <div class="steps" id="steps"><div>① 选翻译引擎</div><div>② 填写 API Key</div><div>③ 设置语言</div><div>④ 开始使用</div></div>
+
+  <!-- 1 选引擎 -->
+  <section id="s1">
+    <h2>选一个翻译引擎</h2>
+    <p class="lead">插件本身免费，翻译由你自己的翻译服务账号完成（按用量付费或免费额度）。先选一个就够用，以后可以在设置里再加。</p>
+    <div class="opts" id="engines">
+      <label class="opt on" data-e="qwen"><input type="radio" name="e" value="qwen" checked>
+        <div><b>通义千问 Qwen-MT</b><span class="tag t-rec">推荐</span></div>
+        <ul><li>阿里云出品，国内手机号 / 支付宝就能注册开通</li><li>专业翻译模型，支持 92 种语言，包括孟加拉语、哈萨克语、乌兹别克语等小语种</li><li>按用量计费，聊天这种短文本用量很小</li></ul>
+      </label>
+      <label class="opt" data-e="deepl"><input type="radio" name="e" value="deepl">
+        <div><b>DeepL</b><span class="tag t-warn">注册门槛高</span></div>
+        <ul><li>速度快、质量稳定，免费版每月 50 万字符</li><li class="minus">注册需要绑定海外支持的信用卡，国内很多人卡在这一步</li><li class="minus">不支持孟加拉语、哈萨克语、印地语、越南语、泰语等</li></ul>
+      </label>
+      <label class="opt" data-e="deepseek"><input type="radio" name="e" value="deepseek">
+        <div><b>DeepSeek</b></div>
+        <ul><li>能参考聊天上下文，可以调语气</li><li>“商机作战卡”功能必须用 DeepSeek</li><li class="minus">需要先充值才能用；翻译速度比前两个慢</li></ul>
+      </label>
+    </div>
+    <div class="nav"><span></span><button id="to2">下一步</button></div>
+  </section>
+
+  <!-- 2 填 Key -->
+  <section id="s2" hidden>
+    <h2 id="kTitle"></h2>
+    <p class="lead">照着下面做，大约 5 分钟。Key 只保存在你自己的浏览器里，不会上传到任何地方。</p>
+    <ol class="how" id="kHow"></ol>
+    <div class="keybox">
+      <input id="key" type="password" autocomplete="off" spellcheck="false">
+      <select id="region" hidden><option value="beijing">地域：北京（国内账号选这个）</option><option value="intl">地域：新加坡（国际站账号）</option></select>
+      <button id="test">保存并测试</button>
+    </div>
+    <div id="kStatus" class="status"></div>
+    <div class="note" id="kNote" hidden></div>
+    <div class="nav"><button class="ghost" id="back1">上一步</button><span><button class="ghost" id="skip2">先跳过</button> <button id="to3" disabled>下一步</button></span></div>
+  </section>
+
+  <!-- 3 语言 -->
+  <section id="s3" hidden>
+    <h2>设置语言</h2>
+    <p class="lead">每个客户用什么语言，插件会自动识别并分别记住，这里只是默认值。</p>
+    <div class="row"><label for="inT">客户消息翻译成</label><select id="inT"></select></div>
+    <div class="row"><label for="outT">我回复时默认译成</label><select id="outT"></select></div>
+    <p class="hint">例如客户发阿拉伯语，你回复时会自动译成阿拉伯语；还没识别出语言的新客户，才用上面的默认语言。</p>
+    <div class="note" id="dsNote" hidden>提示：“商机作战卡”需要 DeepSeek 的 Key，以后想用时在设置页填上即可，翻译不受影响。</div>
+    <div class="nav"><button class="ghost" id="back2">上一步</button><button id="to4">完成设置</button></div>
+  </section>
+
+  <!-- 4 完成 -->
+  <section id="s4" hidden>
+    <h2>✓ 设置完成</h2>
+    <p class="lead">打开 WhatsApp 网页，点开任意客户聊天就能看到译文。如果 WhatsApp 网页已经开着，请先刷新一下。</p>
+    <div class="tips">
+      <div><kbd>自动</kbd><span>客户发来的消息，下方自动出现中文译文</span></div>
+      <div><kbd>译</kbd><span>在输入框写中文，点工具条上的“译”（或按 Alt+T）变成客户的语言，黄色框里是回译，核对后自己按 Enter 发送</span></div>
+      <div><kbd>/</kbd><span>在输入框输入 / 加关键词（如 /交期）调出常用话术，自动翻译</span></div>
+      <div><kbd>单</kbd><span>把当前聊天整理成商机作战卡（需要 DeepSeek Key）</span></div>
+    </div>
+    <div class="nav"><button class="ghost" id="openOpts">打开设置页</button><button class="big" id="openWA">打开 WhatsApp 网页</button></div>
+  </section>
+
+  <p class="privacy">TradeLingo 是独立开源项目，与 WhatsApp / Meta 无关。消息只会从你的浏览器直接发给你选择的翻译服务，没有任何中转服务器。</p>
+</div>
+<script src="common.js"></script>
+<script src="welcome.js"></script>
+</body>
+</html>

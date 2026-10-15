@@ -31,7 +31,7 @@
   for (const [v, label] of WADL_DS_MODELS) $('deepseekModel').add(new Option(label, v));
   for (const [v, label] of WADL_QWEN_MODELS) $('qwenModel').add(new Option(label, v));
 
-  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled'];
+  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled', 'updateCheck'];
   const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality', 'notifyWaitHours', 'digestHour'];
 
   const STATUS_IDS = { deepl: 'statusDeepl', qwen: 'statusQwen', deepseek: 'statusDeepseek' };
@@ -157,6 +157,71 @@
   });
 
   if (location.hash === '#backup') setTimeout(() => $('backup').scrollIntoView(), 100);
+
+  // ---------- 版本与更新 ----------
+  const CUR = chrome.runtime.getManifest().version;
+  $('ver').textContent = CUR;
+  function showUpdate(u) {
+    const has = !!(u && u.latest && wadlVerCmp(u.latest, CUR) > 0);
+    $('update').hidden = !has;
+    if (!has) return;
+    $('updLatest').textContent = 'v' + u.latest;
+    $('updDate').textContent = u.date ? ` · 新版发布于 ${u.date}` : '';
+    $('updCurrent').textContent = CUR;
+    $('updNotes').textContent = '';
+    for (const n of u.notes || []) { const li = document.createElement('li'); li.textContent = n; $('updNotes').append(li); }
+    $('updDownload').href = u.download || WADL_REPO + '/archive/refs/heads/main.zip';
+    $('updChangelog').href = u.changelog || WADL_REPO + '/blob/main/CHANGELOG.md';
+  }
+  function updateStatus(u) {
+    if (!u) { setStatus('statusUpdate', `当前版本 v${CUR}，还没有检查过更新`); return; }
+    const when = u.checkedAt ? new Date(u.checkedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    if (u.error) setStatus('statusUpdate', `✗ ${u.error} · ${when}。可以稍后再试，或直接到 GitHub 查看`, false);
+    else if (wadlVerCmp(u.latest, CUR) > 0) setStatus('statusUpdate', `有新版本 v${u.latest}（见页面顶部）· 检查于 ${when}`, true);
+    else setStatus('statusUpdate', `✓ 已是最新版本 v${CUR} · 检查于 ${when}`, true);
+  }
+  chrome.storage.local.get({ wadlUpdate: null }).then(({ wadlUpdate }) => { showUpdate(wadlUpdate); updateStatus(wadlUpdate); });
+  $('checkUpdate').addEventListener('click', async () => {
+    setStatus('statusUpdate', '正在检查…');
+    const r = await send({ type: 'checkUpdate' });
+    if (!r.ok) { setStatus('statusUpdate', '✗ ' + r.error, false); return; }
+    showUpdate(r.info); updateStatus(r.info);
+  });
+  if (location.hash === '#update') setTimeout(() => { $('updHow').open = true; }, 100);
+
+  // ---------- 使用向导 ----------
+  const openWelcome = () => chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+  $('openWelcome').addEventListener('click', openWelcome);
+  $('openWelcome2').addEventListener('click', openWelcome);
+  chrome.storage.local.get({ apiKey: '', qwenKey: '', deepseekKey: '' }).then((k) => { $('welcomeCard').hidden = !!(k.apiKey || k.qwenKey || k.deepseekKey); });
+
+  // ---------- 本月用量 ----------
+  function showUsage(u) {
+    const box = $('usage');
+    box.textContent = '';
+    const m = tlTodayStr().slice(0, 7);
+    const cur = u && u.month === m ? u : {};
+    $('usageMonth').textContent = m;
+    const rows = [['DeepL', cur.deepl], ['通义千问 Qwen-MT', cur.qwen], ['DeepSeek 翻译', cur.deepseek], ['DeepSeek 商机作战卡', cur.deal]];
+    for (const [name, n] of rows) {
+      const a = document.createElement('span'); a.textContent = name;
+      const b = document.createElement('b'); b.textContent = (n || 0).toLocaleString('en-US') + ' 字符';
+      box.append(a, b);
+    }
+    const prev = cur.prev || (u && u.month && u.month !== m ? u : null);
+    if (prev && prev.month) {
+      const total = (prev.deepl || 0) + (prev.qwen || 0) + (prev.deepseek || 0) + (prev.deal || 0);
+      const a = document.createElement('span'); a.className = 'hint'; a.textContent = `上月（${prev.month}）合计`;
+      const b = document.createElement('b'); b.className = 'hint'; b.textContent = total.toLocaleString('en-US') + ' 字符';
+      box.append(a, b);
+    }
+  }
+  chrome.storage.local.get({ wadlUsage: null }).then(({ wadlUsage }) => showUsage(wadlUsage));
+  chrome.storage.onChanged.addListener((ch, area) => {
+    if (area !== 'local') return;
+    if (ch.wadlUsage) showUsage(ch.wadlUsage.newValue);
+    if (ch.wadlUpdate) { showUpdate(ch.wadlUpdate.newValue); updateStatus(ch.wadlUpdate.newValue); }
+  });
 
   $('clearCache').addEventListener('click', async () => {
     const resp = await send({ type: 'clearCache' });

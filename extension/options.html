@@ -28,11 +28,45 @@
   .status { min-height: 18px; margin-top: 6px; font-size: 12px; word-break: break-all; }
   .ok { color: #0b6e4f; } .err { color: #c0392b; }
   .sub { font-size: 12px; color: #6b7780; font-weight: 600; margin: 10px 0 2px; }
+  [hidden] { display: none !important; }
+  .upd { background: #fff6e5; border: 1px solid #f5c26b; }
+  .upd .title { color: #9a4b00; }
+  .upd ul { margin: 4px 0 8px; padding-left: 18px; }
+  .upd details { margin-top: 8px; color: #4b5563; }
+  .upd summary { cursor: pointer; font-weight: 600; }
+  .upd ol { margin: 6px 0 0; padding-left: 20px; }
+  a.btn { display: inline-block; padding: 6px 12px; border-radius: 6px; background: #00a884; color: #fff; text-decoration: none; }
+  a.btn.secondary { background: #e9edef; color: #333; }
+  .welcome { display: flex; align-items: center; gap: 10px; background: #e7f6f1; }
+  .welcome p { margin: 0; flex: 1; }
+  .usage { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 4px 0; }
+  .usage b { font-variant-numeric: tabular-nums; text-align: right; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.7.1</span></h1>
+  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v<span id="ver"></span></span></h1>
+
+  <div class="card upd" id="update" hidden>
+    <div class="title">🎉 发现新版本 <span id="updLatest"></span></div>
+    <div class="hint" style="margin:-4px 0 4px">你现在是 v<span id="updCurrent"></span><span id="updDate"></span></div>
+    <ul id="updNotes"></ul>
+    <div class="key-row"><a class="btn" id="updDownload" target="_blank" rel="noopener">下载新版（ZIP）</a><a class="btn secondary" id="updChangelog" target="_blank" rel="noopener">完整更新说明</a></div>
+    <details id="updHow">
+      <summary>怎么更新？（1 分钟，设置和作战卡都会保留）</summary>
+      <ol>
+        <li>下载 ZIP 并解压。</li>
+        <li>把解压出来的 <b>extension</b> 文件夹里的全部文件，复制到你当初安装插件的那个文件夹，覆盖旧文件。<br><span class="hint">一定要覆盖原来的文件夹，不要换新文件夹，否则设置会变成空的。</span></li>
+        <li>打开 <b>chrome://extensions</b>（Edge 是 edge://extensions），在 TradeLingo 卡片上点 <b>⟳ 重新加载</b>。</li>
+        <li>刷新 WhatsApp 网页。</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="card welcome" id="welcomeCard" hidden>
+    <p>第一次使用？跟着向导 3 步填好 API Key。</p>
+    <button id="openWelcome">打开使用向导</button>
+  </div>
 
   <div class="card">
     <div class="title">DeepL API Key <span class="badge b-deepl">DeepL</span></div>
@@ -147,6 +181,19 @@
     <div class="title">快捷话术</div>
     <textarea id="phrases" style="min-height:160px" placeholder="每行一条：关键词 | 中文内容"></textarea>
     <p class="hint">在 WhatsApp 输入框输入 <b>/</b> 加关键词（如 <b>/报价</b>），按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
+  </div>
+
+  <div class="card" id="usageCard">
+    <div class="title">本月用量 <span class="hint" id="usageMonth" style="margin:0"></span></div>
+    <div class="usage" id="usage"></div>
+    <p class="hint">统计的是真正发给翻译服务的字符数，缓存命中不计。实际费用以各平台账单为准：DeepL 免费版每月 50 万字符（填了 DeepL Key 时，上面的“保存并测试”会显示官方统计的已用量）；DeepSeek 点“保存并测试”可查余额；通义千问在阿里云费用中心查看。</p>
+  </div>
+
+  <div class="card" id="verCard">
+    <div class="title">版本与更新</div>
+    <label class="check"><input type="checkbox" id="updateCheck"> 每天自动检查一次新版本（只读取 GitHub 上的版本号，不上传任何数据）</label>
+    <div class="key-row"><button id="checkUpdate" class="secondary">立即检查更新</button><button id="openWelcome2" class="secondary">使用向导</button></div>
+    <div id="statusUpdate" class="status"></div>
   </div>
 
   <div class="card">

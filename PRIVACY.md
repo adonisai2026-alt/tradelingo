@@ -12,10 +12,11 @@ TradeLingo runs entirely in your browser. It has no server of its own and collec
 | Up to 8 recent messages of the open chat, as context | DeepSeek only, and only when "use recent chat as context" is enabled | When DeepSeek translates your reply |
 | Up to the last 80 visible messages of the open chat, with time and sender ("us"/"customer"); phone numbers masked | DeepSeek only | Only when you click Generate / Update on the deal battle card |
 | Your API key | The provider that issued it | With each request to that provider |
+| Nothing (a plain download of the public `update.json` file; no data from you is included) | GitHub (`raw.githubusercontent.com`), or the jsDelivr mirror (`cdn.jsdelivr.net`) if GitHub is unreachable | At most about once a day, to check for a new version. Can be turned off in settings |
 
 Each provider handles the text under its own privacy policy. Check it before translating sensitive content.
 
-**What is stored locally** (`chrome.storage.local`, on your computer only): API keys, settings, glossary, quick phrases, a translation cache, per-chat language records, and deal battle cards. Per-chat records store only a hash of the chat ID, never phone numbers or names.
+**What is stored locally** (`chrome.storage.local`, on your computer only): API keys, settings, glossary, quick phrases, a translation cache, per-chat language records, deal battle cards, and monthly character counts per engine. Per-chat records store only a hash of the chat ID, never phone numbers or names.
 
 Follow-up reminders are computed locally from your saved battle cards and shown with your system's notifications; nothing is sent anywhere.
 
@@ -39,10 +40,11 @@ TradeLingo 完全在你的浏览器中运行，没有自己的服务器，也不
 | 当前聊天最近 8 条消息（作为上下文） | 仅 DeepSeek，且只在勾选“参考最近聊天”时发送 | DeepSeek 翻译你的回复时 |
 | 当前聊天最近最多 80 条可见消息（含时间、发送方“我方/客户”），电话号码已打码 | 仅 DeepSeek | 只在你点击作战卡的“生成”或“更新”时 |
 | 你的 API Key | 签发该 Key 的服务商 | 每次向该服务商发起请求时 |
+| 不发送任何数据（只是下载公开的 `update.json` 文件读取最新版本号） | GitHub（`raw.githubusercontent.com`），打不开时用 jsDelivr 镜像（`cdn.jsdelivr.net`） | 大约每天一次，检查有没有新版本；可在设置里关闭 |
 
 各服务商按照其自身的隐私政策处理这些文字，翻译敏感内容前请先了解相关政策。
 
-**本地保存的内容**（`chrome.storage.local`，只在你的电脑上）：API Key、设置、术语表、快捷话术、翻译缓存、客户语言记录、商机作战卡。客户语言记录只保存聊天编号的哈希值，不保存电话号码或姓名。
+**本地保存的内容**（`chrome.storage.local`，只在你的电脑上）：API Key、设置、术语表、快捷话术、翻译缓存、客户语言记录、商机作战卡、各引擎本月用量（字符数）。客户语言记录只保存聊天编号的哈希值，不保存电话号码或姓名。
 
 跟进提醒根据本地保存的作战卡计算，通过系统通知显示，不会发送到任何地方。
 

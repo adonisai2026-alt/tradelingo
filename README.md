@@ -24,6 +24,7 @@ Read every customer message in your own language, write replies in your language
 - **Today's follow-up.** All battle cards ranked by estimated value × heat × urgency (overdue promises, customers waiting for your reply, silent customers), computed locally with no API cost. Export to Excel (CSV).
 - **Follow-up reminders.** Desktop notifications when your promise or next step is due, or a customer has waited too long for your reply, plus a daily morning digest of who to follow up today. Checked every 15 minutes in the background, even when WhatsApp is closed; unread counts in the WhatsApp chat list are taken into account, so you are reminded even if you never opened the chat. No API cost.
 - **Backup and restore.** Export battle cards, phrases, glossary, per-chat languages and settings to a JSON file (API keys optional) and import them on another computer or browser. Imports merge with existing data.
+- **Setup wizard and update alerts.** A wizard opens after installing and walks you through getting and testing a key. About once a day TradeLingo checks GitHub for a new version and shows a badge on its icon when one is available. Settings show how many characters each engine used this month.
 - **More than 30 target languages**, including Bengali, Kazakh, Uzbek, Hindi, Urdu, Persian, Vietnamese, Thai, Malay and Filipino through the AI engines.
 
 The user interface is currently in **Simplified Chinese**. Contributions for other UI languages are welcome.
@@ -45,7 +46,7 @@ TradeLingo is not on the Chrome Web Store yet. Load it as an unpacked extension:
 1. Download this repository (Code → Download ZIP) and unzip it.
 2. Open `chrome://extensions` and turn on **Developer mode**.
 3. Click **Load unpacked** and select the **`extension`** folder.
-4. Click the TradeLingo icon in the toolbar, paste your API key(s) and click **保存并测试** (Save & test).
+4. The setup wizard opens automatically: pick an engine, follow the steps to get a key, and click **保存并测试** (Save & test). You can also paste keys later by clicking the TradeLingo icon in the toolbar.
 5. Reload WhatsApp Web.
 
 Works the same in **Microsoft Edge**: open `edge://extensions`, turn on Developer mode (left sidebar) and click **Load unpacked**. Settings are not shared between browsers; use Backup and restore to move them.
@@ -104,6 +105,7 @@ extension/        Chrome extension (Manifest V3) — load this folder
   deals.html/js   Today's follow-up page
   content.css
   options.html/js Settings page
+  welcome.html/js First-run setup wizard
   common.js       Shared defaults and language list
   icons/
 docs/             Screenshots, logo, illustrated manual

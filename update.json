@@ -1,0 +1,11 @@
+{
+  "version": "0.8.0",
+  "date": "2026-10-16",
+  "notes": [
+    "新增：首次使用向导，手把手申请和测试 API Key",
+    "新增：新版本提醒（图标红色“新”角标 + 设置页更新说明）",
+    "新增：设置页显示各引擎本月用量"
+  ],
+  "download": "https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip",
+  "changelog": "https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"
+}

@@ -22,6 +22,7 @@ var WADL_DEFAULTS = {
   notifyWaitHours: 4,            // 客户等你回复超过几小时提醒
   digestEnabled: true,           // 每日早报
   digestHour: 9,                 // 早报时间（几点之后第一次检查时发送）
+  updateCheck: true,             // 每天检查一次 GitHub 上有没有新版本
   // 快捷话术：每行 “关键词 | 中文内容”，在输入框输入 / 调出
   phrases: [
     '问候 | 您好！感谢您的咨询，请问有什么可以帮您？',
@@ -91,3 +92,15 @@ var WADL_LANGS = [
   ['MS', '马来语', 'Malay', false],
   ['FIL', '菲律宾语', 'Filipino (Tagalog)', false]
 ];
+
+// 版本号比较：'0.10.0' > '0.9.3'
+function wadlVerCmp(a, b) {
+  const pa = String(a || '0').split('.').map((x) => parseInt(x, 10) || 0);
+  const pb = String(b || '0').split('.').map((x) => parseInt(x, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d > 0 ? 1 : -1;
+  }
+  return 0;
+}
+var WADL_REPO = 'https://github.com/adonisai2026-alt/tradelingo';

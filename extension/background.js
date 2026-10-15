@@ -31,6 +31,21 @@ function scheduleSave() {
   }, 1500);
 }
 
+// ---------- 本月用量（只统计真正发给翻译服务的字符，缓存命中不计） ----------
+let usage = null;
+let usageTimer = null;
+const monthStr = (d = new Date()) => tlTodayStr(d).slice(0, 7);
+async function addUsage(engine, chars, kind) {
+  if (!chars) return;
+  if (!usage) usage = (await chrome.storage.local.get({ wadlUsage: {} })).wadlUsage || {};
+  const m = monthStr();
+  if (usage.month !== m) usage = { month: m, prev: usage.month ? { month: usage.month, deepl: usage.deepl || 0, qwen: usage.qwen || 0, deepseek: usage.deepseek || 0, deal: usage.deal || 0 } : null };
+  const k = kind === 'deal' ? 'deal' : engine;
+  usage[k] = (usage[k] || 0) + chars;
+  clearTimeout(usageTimer);
+  usageTimer = setTimeout(() => chrome.storage.local.set({ wadlUsage: usage }), 1500);
+}
+
 // ---------- 通用请求（重试 + 超时） ----------
 async function fetchJson(url, init, describe, timeoutMs) {
   for (let attempt = 0; ; attempt++) {
@@ -404,6 +419,7 @@ async function runEngine(engine, texts, target, s, direction, context) {
       : await deepseekTranslate(missTexts, target, s, direction, context);
     miss.forEach((i, j) => { results[i] = got[j]; cache.set(ck(texts[i]), got[j]); });
     scheduleSave();
+    addUsage(engine, missTexts.reduce((n, t) => n + t.length, 0));
   }
   return results;
 }
@@ -543,6 +559,7 @@ async function dealAnalyze(msg) {
   const mode = msg.mode === 'update' ? 'update' : 'full';
   const payload = { today: msg.today, chat_title: msg.title || '', messages: msg.messages || [] };
   if (mode === 'update') { payload.card = msg.card || {}; payload.locked = msg.locked || []; }
+  addUsage('deepseek', JSON.stringify(payload).length, 'deal');
   const content = await deepseekChat(key, {
     model: wadlDsModel(s.deepseekModel),
     messages: [
@@ -645,16 +662,82 @@ async function checkReminders(force) {
   return list;
 }
 
-chrome.alarms.onAlarm.addListener((a) => { if (a.name === TL_ALARM) checkReminders(); });
+// ---------- 新版本提醒：每天查一次 GitHub 上的 update.json ----------
+// raw.githubusercontent.com 在国内有时打不开，失败就换 jsDelivr 镜像；两者都允许跨域，不需要额外权限
+const UPDATE_SOURCES = [
+  'https://raw.githubusercontent.com/adonisai2026-alt/tradelingo/main/update.json',
+  'https://cdn.jsdelivr.net/gh/adonisai2026-alt/tradelingo@main/update.json'
+];
+const UPDATE_EVERY = 20 * 3600000;
+
+function setBadge(hasNew) {
+  try {
+    chrome.action.setBadgeText({ text: hasNew ? '新' : '' });
+    if (hasNew) chrome.action.setBadgeBackgroundColor({ color: '#e02424' });
+    chrome.action.setTitle({ title: hasNew ? 'TradeLingo：有新版本，点击查看' : 'TradeLingo' });
+  } catch (e) { /* 忽略 */ }
+}
+
+// 解析 update.json（纯函数，便于测试）
+function parseUpdate(j, current) {
+  if (!j || typeof j.version !== 'string' || !/^\d+(\.\d+)*$/.test(j.version)) throw new Error('更新信息格式不对');
+  const notes = Array.isArray(j.notes) ? j.notes.filter((x) => typeof x === 'string').slice(0, 8) : [];
+  const safe = (u, d) => (typeof u === 'string' && u.startsWith('https://github.com/adonisai2026-alt/tradelingo') ? u : d);
+  return {
+    latest: j.version, current, hasNew: wadlVerCmp(j.version, current) > 0, date: typeof j.date === 'string' ? j.date.slice(0, 10) : '', notes,
+    download: safe(j.download, WADL_REPO + '/archive/refs/heads/main.zip'), changelog: safe(j.changelog, WADL_REPO + '/blob/main/CHANGELOG.md')
+  };
+}
+
+async function checkUpdate(force) {
+  const current = chrome.runtime.getManifest().version;
+  const st = await chrome.storage.local.get({ updateCheck: true, wadlUpdate: null });
+  const old = st.wadlUpdate;
+  if (!force) {
+    if (!st.updateCheck) { setBadge(false); return old; }
+    if (old && old.checkedAt && Date.now() - old.checkedAt < UPDATE_EVERY && old.current === current) { setBadge(old.hasNew); return old; }
+  }
+  let info = null;
+  let lastErr = '';
+  for (const url of UPDATE_SOURCES) {
+    try {
+      const res = await fetch(url + '?t=' + Math.floor(Date.now() / 600000), { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+      if (!res.ok) { lastErr = 'HTTP ' + res.status; continue; }
+      info = parseUpdate(await res.json(), current);
+      break;
+    } catch (e) { lastErr = e.name === 'TimeoutError' ? '连接超时' : e.message; }
+  }
+  if (!info) {
+    const rec = { ...(old || {}), current, hasNew: !!(old && wadlVerCmp(old.latest, current) > 0), checkedAt: Date.now(), error: '无法连接 GitHub（' + lastErr + '）' };
+    await chrome.storage.local.set({ wadlUpdate: rec });
+    setBadge(rec.hasNew);
+    return rec;
+  }
+  info.checkedAt = Date.now();
+  info.notifiedFor = old && old.notifiedFor;
+  if (info.hasNew && info.notifiedFor !== info.latest) {
+    info.notifiedFor = info.latest;
+    notify('upd-' + info.latest, `TradeLingo 有新版本 v${info.latest}`, (info.notes[0] ? info.notes.slice(0, 2).join('；') + '\n' : '') + '点击查看更新内容和下载');
+  }
+  await chrome.storage.local.set({ wadlUpdate: info });
+  setBadge(info.hasNew);
+  return info;
+}
+
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === TL_ALARM) { checkReminders(); checkUpdate(); } });
 chrome.notifications.onClicked.addListener((id) => {
   chrome.notifications.clear(id);
-  if (id.startsWith('tl-')) chrome.tabs.create({ url: TL_DEALS_URL() });
+  if (id.startsWith('upd-')) chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1#update') });
+  else if (id.startsWith('tl-')) chrome.tabs.create({ url: TL_DEALS_URL() });
 });
-chrome.runtime.onStartup.addListener(() => { ensureAlarm(); setTimeout(checkReminders, 5000); });
+chrome.runtime.onStartup.addListener(() => { ensureAlarm(); setTimeout(checkReminders, 5000); setTimeout(checkUpdate, 20000); });
 ensureAlarm();
 
 // 升级迁移：旧模型名改为 deepseek-flash；v0.3 起发送默认改用 Qwen-MT（只迁移一次）
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
+  // 第一次安装：打开使用向导；升级后：重新判断是否还有更新（刚升级完就去掉“新”角标）
+  if (details && details.reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+  setTimeout(() => checkUpdate(true), 3000);
   const st = await chrome.storage.local.get({ deepseekModel: '', outgoingEngine: '', wadlMigr03: false });
   const patch = {};
   if (st.deepseekModel && wadlDsModel(st.deepseekModel) !== st.deepseekModel) patch.deepseekModel = wadlDsModel(st.deepseekModel);
@@ -683,6 +766,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } else if (msg.type === 'openDeals') {
         await chrome.tabs.create({ url: chrome.runtime.getURL('deals.html') });
         sendResponse({ ok: true });
+      } else if (msg.type === 'checkUpdate') {
+        sendResponse({ ok: true, info: await checkUpdate(true) });
       } else if (msg.type === 'clearCache') {
         cache = new Map();
         await chrome.storage.local.remove('wadlCache');

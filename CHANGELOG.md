@@ -1,5 +1,13 @@
 # Changelog / 更新记录
 
+## 0.8.0
+- New: **first-run setup wizard** (opens after installing; also from settings). Recommends an engine, shows step-by-step instructions for getting a key (Qwen-MT / DeepL / DeepSeek), tests it, then sets default languages and uses only engines that have a key.
+- New: **update alerts**. About once a day the extension reads the public `update.json` from GitHub (jsDelivr mirror as fallback). When a newer version exists: a red “新” badge on the toolbar icon, one desktop notification, and a banner at the top of settings with release notes, a download link and update steps. Can be turned off.
+- New: **monthly usage** in settings — characters actually sent to each engine (cache hits not counted), including deal-card analysis, plus last month's total.
+- 新增：**首次使用向导**（安装后自动打开，设置页也能打开）：推荐引擎、手把手申请 Key、测试、设置默认语言。
+- 新增：**新版本提醒**：每天检查一次 GitHub 上的 `update.json`（打不开时用 jsDelivr 镜像），有新版时图标显示红色“新”、弹一次桌面通知、设置页顶部显示更新内容、下载链接和更新步骤；可关闭。
+- 新增：**本月用量**：设置页显示各引擎本月实际发送的字符数（缓存命中不计，含作战卡）和上月合计。
+
 ## 0.7.1
 - Reminders now also read unread counts from the WhatsApp chat list (local, every 10 s while WhatsApp Web is open, only for customers with a battle card), so a customer who wrote while the chat was closed still triggers "waiting for your reply". A reply sent from your phone (tick in the list preview) clears it.
 - Diagnostics include chat-list detection. Illustrated manual updated with battle card, follow-up, reminders and backup chapters.

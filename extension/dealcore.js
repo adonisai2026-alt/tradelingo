@@ -5,6 +5,12 @@ var TL_DEAL_LABELS = {
   blockers: '卡点', next: '下一步', commitments: '承诺记录', quotes: '报价记录', missing: '缺失信息', summary: '摘要'
 };
 
+// 显示用的字段名（随界面语言）
+function tlLabel(f) { return tr(TL_DEAL_LABELS[f] || f); }
+// AI 返回的固定取值（高/中/低、我方/客户、阶段、客户类型）在内部保持中文，显示时翻译
+function tlEnum(v) { return v === null || v === undefined ? '' : tr(String(v)); }
+const tlSep = () => tr('：');
+
 function tlIsManual(v) { return !!(v && typeof v === 'object' && !Array.isArray(v) && typeof v.manual === 'string'); }
 function tlArr(v) { return Array.isArray(v) ? v : []; }
 function tlStr(v) { return v === null || v === undefined ? '' : String(v); }
@@ -28,16 +34,16 @@ function tlFieldText(field, v) {
   if (tlIsManual(v)) return v.manual;
   if (v === null || v === undefined) return '';
   switch (field) {
-    case 'customer': return [v.name, v.company, v.country].filter(Boolean).join(' · ') + (v.type && v.type !== '未知' ? `（${v.type}）` : '');
-    case 'heat': return v.level ? `${v.level}${v.reason ? '：' + v.reason : ''}` : '';
-    case 'stage': return tlStr(v);
-    case 'value': return tlMoney(v) ? `${tlMoney(v)}${v.basis ? '（' + v.basis + '）' : ''}` : '';
-    case 'needs': return tlArr(v).map((n) => [n.item, n.qty ? '× ' + n.qty : '', n.target ? '目标价 ' + n.target : ''].filter(Boolean).join(' ')).join('\n');
+    case 'customer': return [v.name, v.company, v.country].filter(Boolean).join(' · ') + (v.type && v.type !== '未知' ? tr('（{x}）', { x: tlEnum(v.type) }) : '');
+    case 'heat': return v.level ? `${tlEnum(v.level)}${v.reason ? tlSep() + v.reason : ''}` : '';
+    case 'stage': return tlEnum(tlStr(v));
+    case 'value': return tlMoney(v) ? `${tlMoney(v)}${v.basis ? tr('（{x}）', { x: v.basis }) : ''}` : '';
+    case 'needs': return tlArr(v).map((n) => [n.item, n.qty ? '× ' + n.qty : '', n.target ? tr('目标价 {x}', { x: n.target }) : ''].filter(Boolean).join(' ')).join('\n');
     case 'terms': return tlStr(v);
     case 'blockers': return tlArr(v).map((b) => b.text).filter(Boolean).join('\n');
-    case 'next': return v.action ? `${v.owner ? v.owner + '：' : ''}${v.action}${v.due ? '（' + v.due + ' 前）' : ''}` : '';
-    case 'commitments': return tlArr(v).map((c) => `${c.date ? c.date + ' ' : ''}${c.who || ''}：${c.what || ''}${c.due ? '（截止 ' + c.due + '）' : ''}`).join('\n');
-    case 'quotes': return tlArr(v).map((q) => `${q.date ? q.date + ' ' : ''}${q.who || ''}${q.item ? ' ' + q.item : ''}：${q.price || ''}`).join('\n');
+    case 'next': return v.action ? `${v.owner ? tlEnum(v.owner) + tlSep() : ''}${v.action}${v.due ? tr('（{x} 前）', { x: v.due }) : ''}` : '';
+    case 'commitments': return tlArr(v).map((c) => `${c.date ? c.date + ' ' : ''}${tlEnum(c.who)}${tlSep()}${c.what || ''}${c.due ? tr('（截止 {x}）', { x: c.due }) : ''}`).join('\n');
+    case 'quotes': return tlArr(v).map((q) => `${q.date ? q.date + ' ' : ''}${tlEnum(q.who)}${q.item ? ' ' + q.item : ''}${tlSep()}${q.price || ''}`).join('\n');
     case 'missing': return tlArr(v).map((m) => m.field).filter(Boolean).join('\n');
     case 'summary': return tlArr(v).map((x) => '· ' + x).join('\n');
     default: return typeof v === 'string' ? v : JSON.stringify(v);
@@ -46,9 +52,9 @@ function tlFieldText(field, v) {
 
 function tlHeatLevel(heat) {
   const t = tlIsManual(heat) ? heat.manual : heat && heat.level;
-  if (/高/.test(t || '')) return '高';
-  if (/中/.test(t || '')) return '中';
-  if (/低/.test(t || '')) return '低';
+  if (/高|\bhigh\b|\bhot\b/i.test(t || '')) return '高';
+  if (/中|\bmedium\b|\bmid\b|\bwarm\b/i.test(t || '')) return '中';
+  if (/低|\blow\b|\bcold\b/i.test(t || '')) return '低';
   return '';
 }
 
@@ -63,9 +69,9 @@ function tlAmount(value) {
 
 function tlDays(ms) { return Math.floor(ms / 86400000); }
 function tlAgo(ms) {
-  if (ms < 3600000) return Math.max(1, Math.round(ms / 60000)) + ' 分钟';
-  if (ms < 86400000) return Math.round(ms / 3600000) + ' 小时';
-  return tlDays(ms) + ' 天';
+  if (ms < 3600000) return tr('{n} 分钟', { n: Math.max(1, Math.round(ms / 60000)) });
+  if (ms < 86400000) return tr('{n} 小时', { n: Math.round(ms / 3600000) });
+  return tr('{n} 天', { n: tlDays(ms) });
 }
 
 // 往来状态：谁在等谁、等了多久（本地计算，不消耗 Token）
@@ -74,8 +80,8 @@ function tlWaiting(rec, now) {
   const lin = rec.lastIn || 0;
   const lout = rec.lastOut || 0;
   if (!lin && !lout) return null;
-  if (lin > lout) return { who: 'us', ms: now - lin, text: rec.unread > 0 ? `客户有 ${rec.unread} 条未读，已等 ${tlAgo(now - lin)}` : `客户在等你回复：${tlAgo(now - lin)}` };
-  return { who: 'customer', ms: now - lout, text: `等待客户回复：${tlAgo(now - lout)}` };
+  if (lin > lout) return { who: 'us', ms: now - lin, text: rec.unread > 0 ? tr('客户有 {n} 条未读，已等 {t}', { n: rec.unread, t: tlAgo(now - lin) }) : tr('客户在等你回复：{t}', { t: tlAgo(now - lin) }) };
+  return { who: 'customer', ms: now - lout, text: tr('等待客户回复：{t}', { t: tlAgo(now - lout) }) };
 }
 
 // 跟进优先级：金额 × 热度 × 紧急度（本地计算）
@@ -88,20 +94,20 @@ function tlUrgency(rec, now) {
   if (!tlIsManual(card.commitments)) {
     for (const c of tlArr(card.commitments)) {
       if (c.who === '我方' && c.due && c.due <= today) {
-        reasons.push(c.due < today ? `我方承诺已逾期：${c.what}` : `我方承诺今天到期：${c.what}`);
+        reasons.push(c.due < today ? tr('我方承诺已逾期：{x}', { x: c.what }) : tr('我方承诺今天到期：{x}', { x: c.what }));
         u += 3;
         break;
       }
     }
   }
   const nx = card.next;
-  if (nx && !tlIsManual(nx) && nx.owner === '我方' && nx.due && nx.due <= today) { reasons.push(`下一步${nx.due < today ? '已逾期' : '今天到期'}`); u += 2; }
+  if (nx && !tlIsManual(nx) && nx.owner === '我方' && nx.due && nx.due <= today) { reasons.push(nx.due < today ? tr('下一步已逾期') : tr('下一步今天到期')); u += 2; }
   const w = tlWaiting(rec, now);
   if (w && w.who === 'us') { const d = tlDays(w.ms); reasons.push(w.text); u += 2 + Math.min(d, 3); }
-  if (w && w.who === 'customer' && tlDays(w.ms) >= 3) { reasons.push(`客户 ${tlDays(w.ms)} 天未回复`); u += tlDays(w.ms) >= 7 ? 1.5 : 1; }
-  if (rec.pending > 0) { reasons.push(`${rec.pending} 条新消息未分析`); u += 1; }
+  if (w && w.who === 'customer' && tlDays(w.ms) >= 3) { reasons.push(tr('客户 {n} 天未回复', { n: tlDays(w.ms) })); u += tlDays(w.ms) >= 7 ? 1.5 : 1; }
+  if (rec.pending > 0) { reasons.push(tr('{n} 条新消息未分析', { n: rec.pending })); u += 1; }
   const miss = tlIsManual(card.missing) ? [] : tlArr(card.missing);
-  if (miss.length) { reasons.push('缺：' + miss.map((m) => m.field).slice(0, 2).join('、')); u += 0.3; }
+  if (miss.length) { reasons.push(tr('缺：{x}', { x: miss.map((m) => m.field).slice(0, 2).join(tr('、')) })); u += 0.3; }
   return { u, reasons };
 }
 
@@ -115,24 +121,25 @@ function tlScore(rec, now) {
 function tlDealTitle(rec) {
   const c = (rec.card || {}).customer;
   if (c && !tlIsManual(c) && (c.company || c.name)) return c.company || c.name;
-  return rec.title || '未命名客户';
+  return rec.title || tr('未命名客户');
 }
 
 // 纯文本（复制给同事、贴到邮件）
 function tlDealText(rec) {
   const card = rec.card || {};
-  const lines = [`【商机作战卡】${tlDealTitle(rec)}`];
+  const lines = [tr('【商机作战卡】{x}', { x: tlDealTitle(rec) })];
   for (const f of ['customer', 'heat', 'stage', 'value', 'next', 'blockers', 'needs', 'terms', 'commitments', 'quotes', 'missing']) {
     const t = tlFieldText(f, card[f]);
-    if (t) lines.push(`${TL_DEAL_LABELS[f]}：${t.includes('\n') ? '\n  ' + t.replace(/\n/g, '\n  ') : t}`);
+    if (t) lines.push(`${tlLabel(f)}${tlSep()}${t.includes('\n') ? '\n  ' + t.replace(/\n/g, '\n  ') : t}`);
   }
   const w = tlWaiting(rec);
   if (w) lines.push(w.text);
-  if (tlArr(card.summary).length) lines.push('摘要：\n' + tlFieldText('summary', card.summary));
+  if (tlArr(card.summary).length) lines.push(tlLabel('summary') + tlSep() + '\n' + tlFieldText('summary', card.summary));
   return lines.join('\n');
 }
 
 var TL_EXPORT_COLS = ['客户', '热度', '阶段', '预估金额', '需求', '条款', '卡点', '下一步', '承诺记录', '报价记录', '缺失信息', '往来状态', '分析时间'];
+function tlExportCols() { return TL_EXPORT_COLS.map((c) => tr(c)); }
 function tlExportRow(rec) {
   const c = rec.card || {};
   const w = tlWaiting(rec);
@@ -140,7 +147,7 @@ function tlExportRow(rec) {
     tlFieldText('customer', c.customer) || rec.title || '', tlFieldText('heat', c.heat), tlFieldText('stage', c.stage),
     tlFieldText('value', c.value), tlFieldText('needs', c.needs), tlFieldText('terms', c.terms), tlFieldText('blockers', c.blockers),
     tlFieldText('next', c.next), tlFieldText('commitments', c.commitments), tlFieldText('quotes', c.quotes), tlFieldText('missing', c.missing),
-    w ? w.text : '', rec.analyzedAt ? new Date(rec.analyzedAt).toLocaleString('zh-CN') : ''
+    w ? w.text : '', rec.analyzedAt ? new Date(rec.analyzedAt).toLocaleString(TL_LANG === 'en' ? 'en-GB' : 'zh-CN') : ''
   ];
 }
 function tlTSV(rows) { return rows.map((r) => r.map((x) => tlStr(x).replace(/\t/g, ' ').replace(/\r?\n/g, ' / ')).join('\t')).join('\n'); }

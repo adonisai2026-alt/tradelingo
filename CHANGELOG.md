@@ -1,5 +1,12 @@
 # Changelog / 更新记录
 
+## 0.9.0
+- New: **English interface.** Settings → 界面语言 / Language: Auto (browser language), 中文 or English. Covers the toolbar, deal card, Today's follow-up, settings, setup wizard, notifications and error messages. Existing users stay on Chinese after updating; new installs follow the browser language, and the wizard has a language switch.
+- In English mode, deal-card text written by DeepSeek is in English (internal values such as heat and "us/customer" are unchanged, so reminders and ranking work the same). Your own language is taken from "Translate incoming messages into", so back-translation and drafts work for non-Chinese users too. English sample quick phrases for new English users.
+- New: **WhatsApp change alert.** If WhatsApp Web changes and messages, the message box or the current chat can no longer be recognised for about 15 seconds, a banner explains it, checks for an extension update in the background, and offers one-click diagnostics and a link to report it. Empty chats don't trigger it.
+- 新增：**英文界面**（设置 → 界面语言：自动 / 中文 / English），覆盖工具条、作战卡、今日跟进、设置页、向导、通知和错误提示。老用户升级后保持中文；新安装跟随浏览器语言，向导右上角可切换。英文模式下 DeepSeek 用英文写作战卡，内部取值不变。
+- 新增：**WhatsApp 改版预警**：连续约 15 秒认不出消息、输入框或当前聊天时，页面左下角给出提示，自动检查新版本，并可一键复制诊断信息、去反馈。空聊天不会误报。
+
 ## 0.8.0
 - New: **first-run setup wizard** (opens after installing; also from settings). Recommends an engine, shows step-by-step instructions for getting a key (Qwen-MT / DeepL / DeepSeek), tests it, then sets default languages and uses only engines that have a key.
 - New: **update alerts**. About once a day the extension reads the public `update.json` from GitHub (jsDelivr mirror as fallback). When a newer version exists: a red “新” badge on the toolbar icon, one desktop notification, and a banner at the top of settings with release notes, a download link and update steps. Can be turned off.

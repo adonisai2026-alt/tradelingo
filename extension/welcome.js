@@ -1,11 +1,20 @@
 // TradeLingo — 首次使用向导：选引擎 → 填 Key 并测试 → 设置语言 → 完成
-(() => {
+(async () => {
   const $ = (id) => document.getElementById(id);
+  const ui = (await chrome.storage.local.get({ uiLang: 'auto' })).uiLang;
+  tlSetUiLang(ui);
+  tlApplyI18n(document.body);
+  const EN = TL_LANG === 'en';
+  // 语言切换
+  document.querySelectorAll('#langsw button').forEach((b) => {
+    b.classList.toggle('on', b.dataset.l === TL_LANG);
+    b.addEventListener('click', async () => { await chrome.storage.local.set({ uiLang: b.dataset.l }); location.reload(); });
+  });
   const KEY_FIELD = { deepl: 'apiKey', qwen: 'qwenKey', deepseek: 'deepseekKey' };
   const GUIDE = {
     qwen: {
-      title: '获取通义千问 Qwen-MT 的 API Key',
-      placeholder: '粘贴以 sk- 开头的 Key',
+      title: tr('获取通义千问 Qwen-MT 的 API Key'),
+      placeholder: tr('粘贴以 sk- 开头的 Key'),
       how: [
         '打开 <a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">阿里云百炼控制台</a>，用阿里云账号登录（没有账号可以用手机号或支付宝注册，并按提示完成实名认证）。',
         '第一次进入时，按页面提示开通百炼服务（按用量付费，不用的话不收费）。',
@@ -15,8 +24,8 @@
       note: '账户欠费时翻译会停止，记得在阿里云费用中心留一点余额。'
     },
     deepl: {
-      title: '获取 DeepL 的 API Key',
-      placeholder: '粘贴 DeepL Key（免费版以 :fx 结尾）',
+      title: tr('获取 DeepL 的 API Key'),
+      placeholder: tr('粘贴 DeepL Key（免费版以 :fx 结尾）'),
       how: [
         '打开 <a href="https://www.deepl.com/pro-api" target="_blank" rel="noopener">DeepL API 页面</a>，选择 <b>DeepL API Free</b>（免费版）注册。',
         '按提示填写信用卡做身份验证（免费版不会扣费）。需要 DeepL 支持的国家/地区发行的卡，国内不少卡会失败。',
@@ -26,8 +35,8 @@
       note: 'DeepL 不支持孟加拉语、哈萨克语、越南语、泰语等。遇到这些客户时，插件需要通义千问或 DeepSeek 的 Key 才能翻译，以后可以在设置页补上。'
     },
     deepseek: {
-      title: '获取 DeepSeek 的 API Key',
-      placeholder: '粘贴以 sk- 开头的 Key',
+      title: tr('获取 DeepSeek 的 API Key'),
+      placeholder: tr('粘贴以 sk- 开头的 Key'),
       how: [
         '打开 <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">DeepSeek 开放平台</a>，用手机号注册登录。',
         '在 <b>充值</b> 页面先充一点余额（按用量计费，余额为 0 时无法调用）。',
@@ -38,13 +47,17 @@
     }
   };
 
-  let engine = 'qwen';
+  // 推荐引擎：中文用户推荐通义千问（国内易开通），英文用户推荐 DeepL
+  let engine = EN ? 'deepl' : 'qwen';
+  document.querySelectorAll('[data-rec]').forEach((t) => { t.hidden = t.dataset.rec !== engine; });
+  document.querySelectorAll('[data-warn]').forEach((t) => { t.hidden = EN; });
+  document.querySelectorAll('#engines .opt').forEach((o) => { const on = o.dataset.e === engine; o.classList.toggle('on', on); o.querySelector('input').checked = on; });
   let tested = false;
   let step = 1;
 
   function send(msg) {
     return new Promise((resolve) => {
-      chrome.runtime.sendMessage(msg, (r) => resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message } : r || { ok: false, error: '后台无响应' }));
+      chrome.runtime.sendMessage(msg, (r) => resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message } : r || { ok: false, error: tr('后台无响应') }));
     });
   }
 
@@ -67,17 +80,17 @@
   async function fillStep2() {
     const g = GUIDE[engine];
     $('kTitle').textContent = g.title;
-    $('kHow').innerHTML = g.how.map((x) => `<li>${x}</li>`).join(''); // 固定文案，非用户输入
+    $('kHow').innerHTML = g.how.map((x) => `<li>${tr(x)}</li>`).join(''); // 固定文案，非用户输入
     $('key').placeholder = g.placeholder;
     $('region').hidden = engine !== 'qwen';
     $('kNote').hidden = !g.note;
-    $('kNote').textContent = g.note;
+    $('kNote').textContent = tr(g.note);
     const s = await chrome.storage.local.get(WADL_DEFAULTS);
     $('key').value = s[KEY_FIELD[engine]] || '';
-    $('region').value = s.qwenRegion || 'beijing';
+    $('region').value = EN && (!s.qwenRegion || s.qwenRegion === WADL_DEFAULTS.qwenRegion) && !s.qwenKey ? 'intl' : s.qwenRegion || 'beijing';
     tested = false;
     $('to3').disabled = true;
-    $('kStatus').textContent = $('key').value ? '已填写过 Key，点“保存并测试”确认一下' : '';
+    $('kStatus').textContent = $('key').value ? tr('已填写过 Key，点“保存并测试”确认一下') : '';
     $('kStatus').className = 'status';
   }
 
@@ -87,13 +100,13 @@
   $('key').addEventListener('input', () => { tested = false; $('to3').disabled = true; });
   $('test').addEventListener('click', async () => {
     const key = $('key').value.trim();
-    if (!key) { $('kStatus').textContent = '请先粘贴 Key'; $('kStatus').className = 'status err'; return; }
-    if (engine === 'deepl' && /^sk-/.test(key)) { $('kStatus').textContent = '这看起来是通义千问或 DeepSeek 的 Key（以 sk- 开头），不是 DeepL 的。请返回上一步选对引擎。'; $('kStatus').className = 'status err'; return; }
+    if (!key) { $('kStatus').textContent = tr('请先粘贴 Key'); $('kStatus').className = 'status err'; return; }
+    if (engine === 'deepl' && /^sk-/.test(key)) { $('kStatus').textContent = tr('这看起来是通义千问或 DeepSeek 的 Key（以 sk- 开头），不是 DeepL 的。请返回上一步选对引擎。'); $('kStatus').className = 'status err'; return; }
     const patch = { [KEY_FIELD[engine]]: key };
     if (engine === 'qwen') patch.qwenRegion = $('region').value;
     await chrome.storage.local.set(patch);
     $('test').disabled = true;
-    $('kStatus').textContent = '正在连接，最多需要十几秒…';
+    $('kStatus').textContent = tr('正在连接，最多需要十几秒…');
     $('kStatus').className = 'status';
     const s = await chrome.storage.local.get(WADL_DEFAULTS);
     const model = engine === 'qwen' ? wadlQwenModel(s.qwenModel) : engine === 'deepseek' ? wadlDsModel(s.deepseekModel) : '';
@@ -102,7 +115,7 @@
     tested = !!r.ok;
     $('to3').disabled = !tested;
     let msg = r.ok ? '✓ ' + r.text : '✗ ' + r.error;
-    if (!r.ok && engine === 'qwen' && /无效/.test(r.error)) msg += '。请确认 Key 复制完整，并检查地域选得对不对。';
+    if (!r.ok && engine === 'qwen' && /无效|invalid/i.test(r.error)) msg += tr('。请确认 Key 复制完整，并检查地域选得对不对。');
     $('kStatus').textContent = msg;
     $('kStatus').className = 'status ' + (r.ok ? 'ok' : 'err');
   });
@@ -111,11 +124,15 @@
   $('to3').addEventListener('click', () => go(3));
 
   // ---------- 3 ----------
-  for (const [code, name, , deepl] of WADL_LANGS) {
-    $('inT').add(new Option(name, code));
-    $('outT').add(new Option(deepl ? name : name + '（AI）', code));
+  for (const l of WADL_LANGS) {
+    $('inT').add(new Option(tlLangName(l), l[0]));
+    $('outT').add(new Option(tlLangOption(l), l[0]));
   }
-  chrome.storage.local.get(WADL_DEFAULTS).then((s) => { $('inT').value = s.incomingTarget; $('outT').value = s.outgoingTarget; });
+  chrome.storage.local.get(WADL_DEFAULTS).then((s) => {
+    // 英文界面：默认把客户消息译成英语
+    $('inT').value = EN && s.incomingTarget === WADL_DEFAULTS.incomingTarget ? 'EN-US' : s.incomingTarget;
+    $('outT').value = s.outgoingTarget;
+  });
   $('back2').addEventListener('click', () => go(2));
 
   $('to4').addEventListener('click', async () => {
@@ -128,7 +145,10 @@
       outgoingTarget: $('outT').value,
       incomingEngine: pick(['deepl', 'qwen', 'deepseek']),
       outgoingEngine: pick(['qwen', 'deepl', 'deepseek']),
-      wadlWelcomeDone: true
+      uiLang: TL_LANG,
+      wadlWelcomeDone: true,
+      // 英文界面且还没改过示例话术：换成英文示例
+      ...(EN && s.phrases === WADL_DEFAULTS.phrases ? { phrases: TL_PHRASES_EN } : {})
     });
     go(4);
   });

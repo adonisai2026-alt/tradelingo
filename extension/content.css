@@ -211,3 +211,20 @@
 .dark #tl-deal .tl-next { background: #103529; } .dark #tl-deal .tl-draft { background: #1f2c33; color: #d1d7db; }
 .dark #tl-deal .tl-manual, .dark #tl-deal .tl-sug { background: #3b3514; } .dark #tl-deal .tl-wait-us { background: #4a1d22; color: #ffb4ab; }
 .dark #tl-deal .tl-wait-customer { background: #26353d; color: #aebac1; } .dark #tl-deal .tl-ta { background: #26353d; color: #e9edef; border-color: #3b4a52; }
+
+/* 健康检查：WhatsApp 改版提醒 */
+#tl-health {
+  position: fixed; z-index: 10002; left: 16px; bottom: 16px; width: 420px; max-width: calc(100vw - 32px);
+  background: #fff8e6; color: #3d2c00; border: 1px solid #f0c060; border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); font: 13px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+#tl-health b { display: block; font-size: 14px; margin-bottom: 4px; }
+#tl-health .tl-h-ops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+#tl-health button { border: 1px solid #e5c26b; background: #fff; color: #3d2c00; border-radius: 8px; padding: 4px 10px; font: inherit; cursor: pointer; }
+#tl-health button.tl-h-primary { background: #00a884; border-color: #00a884; color: #fff; font-weight: 600; }
+#tl-health button.tl-h-x { margin-left: auto; border: none; background: transparent; font-size: 16px; padding: 0 4px; }
+#tl-health .tl-h-status { margin-top: 6px; font-size: 12px; color: #6b5200; }
+#tl-health .tl-h-status:empty { display: none; }
+.dark #tl-health { background: #3a3220; color: #f3e6c4; border-color: #7a6326; }
+.dark #tl-health button { background: #2a2416; color: #f3e6c4; border-color: #7a6326; }
+.dark #tl-health .tl-h-status { color: #e8d39a; }

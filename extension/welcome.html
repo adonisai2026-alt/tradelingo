@@ -13,6 +13,9 @@
   header img { width: 52px; height: 52px; border-radius: 13px; }
   h1 { margin: 0; font-size: 26px; }
   header p { margin: 0; color: var(--ink2); }
+  .langsw { margin-left: auto; display: flex; gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px; align-self: flex-start; }
+  .langsw button { white-space: nowrap; padding: 4px 12px; border-radius: 999px; background: transparent; color: var(--ink2); font-weight: 600; font-size: 13px; }
+  .langsw button.on { background: var(--accent); color: #fff; }
   .steps { display: flex; gap: 8px; margin: 26px 0 18px; }
   .steps div { flex: 1; font-size: 13px; color: var(--ink2); border-top: 4px solid var(--line); padding-top: 6px; }
   .steps div.on { color: var(--accent2); border-color: var(--accent); font-weight: 700; }
@@ -49,7 +52,7 @@
   .note { background: #fff8e8; border: 1px solid #f3d39b; border-radius: 10px; padding: 10px 14px; font-size: 14px; margin-top: 14px; }
   .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; }
   .tips { display: grid; gap: 10px; margin: 6px 0 4px; }
-  .tips div { display: grid; grid-template-columns: 74px 1fr; gap: 12px; align-items: center; }
+  .tips div { display: grid; grid-template-columns: minmax(74px, max-content) 1fr; gap: 12px; align-items: center; }
   kbd { font: 600 13px/1 ui-monospace, Consolas, monospace; background: var(--soft); color: var(--accent2); border-radius: 8px; padding: 7px 8px; text-align: center; }
   .big { font-size: 17px; padding: 12px 26px; }
   .privacy { color: var(--ink2); font-size: 13px; margin-top: 24px; text-align: center; }
@@ -61,6 +64,7 @@
   <header>
     <img src="icons/icon128.png" alt="">
     <div><h1>欢迎使用 TradeLingo</h1><p>3 步设置好，就能在 WhatsApp 网页里看懂、回复各国客户。</p></div>
+    <div class="langsw" id="langsw"><button data-l="zh">中文</button><button data-l="en">English</button></div>
   </header>
 
   <div class="steps" id="steps"><div>① 选翻译引擎</div><div>② 填写 API Key</div><div>③ 设置语言</div><div>④ 开始使用</div></div>
@@ -70,12 +74,12 @@
     <h2>选一个翻译引擎</h2>
     <p class="lead">插件本身免费，翻译由你自己的翻译服务账号完成（按用量付费或免费额度）。先选一个就够用，以后可以在设置里再加。</p>
     <div class="opts" id="engines">
-      <label class="opt on" data-e="qwen"><input type="radio" name="e" value="qwen" checked>
-        <div><b>通义千问 Qwen-MT</b><span class="tag t-rec">推荐</span></div>
+      <label class="opt" data-e="qwen"><input type="radio" name="e" value="qwen">
+        <div><b>通义千问 Qwen-MT</b><span class="tag t-rec" data-rec="qwen">推荐</span></div>
         <ul><li>阿里云出品，国内手机号 / 支付宝就能注册开通</li><li>专业翻译模型，支持 92 种语言，包括孟加拉语、哈萨克语、乌兹别克语等小语种</li><li>按用量计费，聊天这种短文本用量很小</li></ul>
       </label>
       <label class="opt" data-e="deepl"><input type="radio" name="e" value="deepl">
-        <div><b>DeepL</b><span class="tag t-warn">注册门槛高</span></div>
+        <div><b>DeepL</b><span class="tag t-rec" data-rec="deepl">推荐</span><span class="tag t-warn" data-warn="deepl">注册门槛高</span></div>
         <ul><li>速度快、质量稳定，免费版每月 50 万字符</li><li class="minus">注册需要绑定海外支持的信用卡，国内很多人卡在这一步</li><li class="minus">不支持孟加拉语、哈萨克语、印地语、越南语、泰语等</li></ul>
       </label>
       <label class="opt" data-e="deepseek"><input type="radio" name="e" value="deepseek">
@@ -127,6 +131,7 @@
 
   <p class="privacy">TradeLingo 是独立开源项目，与 WhatsApp / Meta 无关。消息只会从你的浏览器直接发给你选择的翻译服务，没有任何中转服务器。</p>
 </div>
+<script src="i18n.js"></script>
 <script src="common.js"></script>
 <script src="welcome.js"></script>
 </body>

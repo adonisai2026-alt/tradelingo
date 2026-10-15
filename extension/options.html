@@ -56,8 +56,8 @@
       <summary>怎么更新？（1 分钟，设置和作战卡都会保留）</summary>
       <ol>
         <li>下载 ZIP 并解压。</li>
-        <li>把解压出来的 <b>extension</b> 文件夹里的全部文件，复制到你当初安装插件的那个文件夹，覆盖旧文件。<br><span class="hint">一定要覆盖原来的文件夹，不要换新文件夹，否则设置会变成空的。</span></li>
-        <li>打开 <b>chrome://extensions</b>（Edge 是 edge://extensions），在 TradeLingo 卡片上点 <b>⟳ 重新加载</b>。</li>
+        <li data-t="opt.upd.step2">把解压出来的 <b>extension</b> 文件夹里的全部文件，复制到你当初安装插件的那个文件夹，覆盖旧文件。<br><span class="hint">一定要覆盖原来的文件夹，不要换新文件夹，否则设置会变成空的。</span></li>
+        <li data-t="opt.upd.step3">打开 <b>chrome://extensions</b>（Edge 是 edge://extensions），在 TradeLingo 卡片上点 <b>⟳ 重新加载</b>。</li>
         <li>刷新 WhatsApp 网页。</li>
       </ol>
     </details>
@@ -117,6 +117,7 @@
   </div>
 
   <div class="card">
+    <label class="row">界面语言 / Language <select id="uiLang"><option value="auto">自动（跟随浏览器）</option><option value="zh">中文</option><option value="en">English</option></select></label>
     <label class="check"><input type="checkbox" id="enabled"> 启用插件</label>
     <label class="check"><input type="checkbox" id="autoIncoming"> 自动翻译收到的消息</label>
     <label class="check"><input type="checkbox" id="translateOwn"> 同时翻译我发出的消息（便于核对译文）</label>
@@ -180,7 +181,7 @@
   <div class="card">
     <div class="title">快捷话术</div>
     <textarea id="phrases" style="min-height:160px" placeholder="每行一条：关键词 | 中文内容"></textarea>
-    <p class="hint">在 WhatsApp 输入框输入 <b>/</b> 加关键词（如 <b>/报价</b>），按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
+    <p class="hint" data-t="opt.phrases.hint">在 WhatsApp 输入框输入 <b>/</b> 加关键词（如 <b>/报价</b>），按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
   </div>
 
   <div class="card" id="usageCard">
@@ -202,6 +203,7 @@
     <p class="hint">已翻译过的内容会缓存在本地，重复出现时不再消耗额度。</p>
   </div>
 </div>
+<script src="i18n.js"></script>
 <script src="common.js"></script>
 <script src="dealcore.js"></script>
 <script src="options.js"></script>

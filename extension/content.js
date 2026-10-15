@@ -1,11 +1,12 @@
 // TradeLingo — 注入 WhatsApp Web：自动翻译消息 + 输入框一键翻译
-// v0.8.0：首次使用向导、新版本提醒、本月用量；v0.7.1：读取聊天列表未读，补上提醒盲区；v0.7.0：跟进提醒、每日早报、备份与恢复；v0.6.0：新增商机作战卡（DeepSeek）与今日跟进；v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
+// v0.9.0：英文界面、WhatsApp 改版预警；v0.8.0：首次使用向导、新版本提醒、本月用量；v0.7.1：读取聊天列表未读，补上提醒盲区；v0.7.0：跟进提醒、每日早报、备份与恢复；v0.6.0：新增商机作战卡（DeepSeek）与今日跟进；v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
 (() => {
   'use strict';
-  const VERSION = '0.8.0';
+  const VERSION = '0.9.0';
   console.info(`[TradeLingo] v${VERSION} 已加载`);
 
   let settings = { ...WADL_DEFAULTS };
+  tlSetUiLang(settings.uiLang);
   let lastOriginal = null;
 
   // ---------- 与后台通信 ----------
@@ -13,11 +14,11 @@
     return new Promise((resolve) => {
       try {
         chrome.runtime.sendMessage(msg, (resp) => {
-          if (chrome.runtime.lastError) resolve({ ok: false, error: '插件已更新或重载，请刷新 WhatsApp 页面' });
-          else resolve(resp || { ok: false, error: '后台无响应' });
+          if (chrome.runtime.lastError) resolve({ ok: false, error: tr('插件已更新或重载，请刷新 WhatsApp 页面') });
+          else resolve(resp || { ok: false, error: tr('后台无响应') });
         });
       } catch (e) {
-        resolve({ ok: false, error: '插件已更新或重载，请刷新 WhatsApp 页面' });
+        resolve({ ok: false, error: tr('插件已更新或重载，请刷新 WhatsApp 页面') });
       }
     });
   }
@@ -39,6 +40,10 @@
     return false;
   }
 
+  // 用户自己的语言（收到的消息译成什么语言），如 ZH / EN
+  const myBase = () => (settings.incomingTarget || 'ZH-HANS').split('-')[0].toUpperCase();
+  const isMine = (code) => (code || '').split('-')[0].toUpperCase() === myBase();
+
   function sameLang(detected, target) {
     if (!detected) return false;
     return detected.split('-')[0].toUpperCase() === target.split('-')[0].toUpperCase();
@@ -58,7 +63,7 @@
     t._timer = setTimeout(() => t.classList.remove('wadl-show'), 4000);
   }
 
-  const isOurs = (el) => !!el.closest('.wadl-tr, #wadl-bar, #wadl-toast, #wadl-back, #wadl-phrases');
+  const isOurs = (el) => !!el.closest('.wadl-tr, #wadl-bar, #wadl-toast, #wadl-back, #wadl-phrases, #tl-health, #tl-deal');
 
   // ---------- 消息识别（多重兜底） ----------
   // 引用框（回复他人消息时上方那块）：可点击跳转，带 quoted-mention 类或 "Quoted" 标签
@@ -210,7 +215,7 @@
   // 识别结果 → 发送目标语言代码
   function toTarget(code) {
     const base = (code || '').toUpperCase().replace('_', '-').split('-')[0];
-    if (!base || base === 'ZH') return '';
+    if (!base || base === 'ZH' || base === myBase()) return '';
     const def = settings.outgoingTarget || 'EN-US';
     if (base === 'EN') return def.startsWith('EN') ? def : 'EN-US';
     if (base === 'PT') return def.startsWith('PT') ? def : 'PT-BR';
@@ -323,7 +328,7 @@
     el.textContent = '';
     const body = document.createElement('span');
     body.className = 'wadl-text';
-    body.textContent = state === 'error' ? `⚠ ${text}（点击重试）` : text;
+    body.textContent = state === 'error' ? `⚠ ${text}${tr('（点击重试）')}` : text;
     el.appendChild(body);
     el.onclick = null;
 
@@ -341,7 +346,7 @@
         const swap = document.createElement('button');
         swap.className = 'wadl-swap';
         swap.textContent = '⇄';
-        swap.title = `用 ${engineName(alt)} 重新翻译`;
+        swap.title = tr('用 {e} 重新翻译', { e: engineName(alt) });
         swap.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); });
         swap.addEventListener('click', (e) => {
           e.preventDefault();
@@ -356,7 +361,7 @@
 
   async function retranslate(container, text, engine) {
     const target = settings.incomingTarget;
-    renderTr(container, `正在用 ${engineName(engine)} 重新翻译…`, 'loading');
+    renderTr(container, tr('正在用 {e} 重新翻译…', { e: engineName(engine) }), 'loading');
     const sl = scriptLang(text);
     const l = sl && WADL_LANGS.find((x) => x[0] === sl);
     const resp = await send({ type: 'translate', texts: [text], target, direction: 'incoming', engine, source: l && !l[3] ? sl : undefined });
@@ -373,7 +378,7 @@
 
   function enqueue(item) {
     queue.push(item);
-    renderTr(item.container, '翻译中…', 'loading');
+    renderTr(item.container, tr('翻译中…'), 'loading');
     if (!flushTimer) flushTimer = setTimeout(flush, 250);
   }
 
@@ -537,10 +542,10 @@
   backText.className = 'wadl-back-text';
   const backRedo = document.createElement('button');
   backRedo.textContent = '↻';
-  backRedo.title = '按输入框当前内容重新回译（Alt+B）';
+  backRedo.title = tr('按输入框当前内容重新回译（Alt+B）');
   const backClose = document.createElement('button');
   backClose.textContent = '×';
-  backClose.title = '关闭';
+  backClose.title = tr('关闭');
   backBox.append(backLabel, backText, backRedo, backClose);
   let back = null; // { forText, label, text, state }
   let backSeq = 0;
@@ -549,7 +554,7 @@
 
   async function runBack(foreign, targetCode) {
     const seq = ++backSeq;
-    back = { forText: norm(foreign), label: '回译', text: '回译中…', state: 'loading' };
+    back = { forText: norm(foreign), label: tr('回译'), text: tr('回译中…'), state: 'loading' };
     renderBack();
     const l = langOfTarget(targetCode);
     // DeepL 支持该语言时用 DeepL 回译（快）；否则交给 AI（DeepL 会把不认识的语言乱译）
@@ -563,13 +568,13 @@
 
   function renderBack() {
     if (!back) { backBox.style.display = 'none'; return; }
-    backLabel.textContent = back.label + (back.engine ? `·${WADL_ENGINE_TAGS[back.engine] || ''}` : '') + '：';
+    backLabel.textContent = back.label + (back.engine ? `·${WADL_ENGINE_TAGS[back.engine] || ''}` : '') + tr('：');
     backText.textContent = back.text;
     backBox.className = back.state === 'error' ? 'wadl-err' : back.state === 'loading' ? 'wadl-loading' : '';
     const input = getInput();
     const stale = input && back.forText && norm(input.innerText) !== back.forText;
     backBox.classList.toggle('wadl-stale', !!stale);
-    backBox.title = stale ? '输入框内容已修改，点 ↻ 重新回译' : '';
+    backBox.title = stale ? tr('输入框内容已修改，点 ↻ 重新回译') : '';
     positionFloating();
   }
 
@@ -588,9 +593,9 @@
   async function translateOutgoing() {
     if (busy) return;
     const input = getInput();
-    if (!input) { toast('没有找到输入框，请先打开一个聊天', true); return; }
+    if (!input) { toast(tr('没有找到输入框，请先打开一个聊天'), true); return; }
     const text = (input.innerText || '').replace(/\n{2,}/g, '\n').trim();
-    if (!text) { toast('输入框是空的'); return; }
+    if (!text) { toast(tr('输入框是空的')); return; }
 
     busy = true;
     goBtn.textContent = '…';
@@ -603,7 +608,7 @@
       context: settings.useContext ? chatContext() : null
     });
     busy = false;
-    goBtn.textContent = '译';
+    goBtn.textContent = tr('译');
 
     if (!resp.ok) { toast(resp.error, true); return; }
     if (resp.note) toast(resp.note);
@@ -611,9 +616,9 @@
     lastOriginal = text;
     if (!(await replaceInput(input, out))) {
       try { await navigator.clipboard.writeText(out); } catch (e) { /* ignore */ }
-      toast('无法自动写入输入框，译文已复制，请按 Ctrl+V 粘贴', true);
+      toast(tr('无法自动写入输入框，译文已复制，请按 Ctrl+V 粘贴'), true);
     }
-    if (settings.backTranslate && !target.startsWith('ZH')) runBack(out, target);
+    if (settings.backTranslate && !isMine(target)) runBack(out, target);
     updateBar();
   }
 
@@ -637,7 +642,7 @@
     phraseList = all.filter((p) => !q || p.key.toLowerCase().includes(q) || p.text.toLowerCase().includes(q)).slice(0, 12);
     if (!phraseList.length) {
       closePhrases();
-      if (!all.length) toast('还没有快捷话术，请在插件设置中添加');
+      if (!all.length) toast(tr('还没有快捷话术，请在插件设置中添加'));
       return;
     }
     phraseIdx = Math.min(phraseIdx, phraseList.length - 1);
@@ -655,7 +660,7 @@
     phraseBox.textContent = '';
     const head = document.createElement('div');
     head.className = 'wadl-ph-head';
-    head.textContent = `快捷话术 → ${(langOfTarget(currentTarget().lang) || [, currentTarget().lang])[1]}　↑↓ 选择 · Enter 插入 · Esc 关闭`;
+    head.textContent = tr('快捷话术 → {lang}　↑↓ 选择 · Enter 插入 · Esc 关闭', { lang: tlLangName(langOfTarget(currentTarget().lang)) || currentTarget().lang });
     phraseBox.appendChild(head);
     phraseList.forEach((p, i) => {
       const item = document.createElement('div');
@@ -676,11 +681,11 @@
   // 把一段中文翻译成当前客户的语言并填入输入框（话术、商机卡的起草/追问共用）
   async function insertChinese(text, label, loadingText) {
     const input = getInput();
-    if (!input) { toast('没有找到输入框，请先打开一个聊天', true); return false; }
+    if (!input) { toast(tr('没有找到输入框，请先打开一个聊天'), true); return false; }
     const target = currentTarget().lang;
-    if (target.startsWith('ZH')) { await replaceInput(input, text); return true; }
+    if (isMine(target)) { await replaceInput(input, text); return true; }
     backSeq++;
-    back = { forText: '', label, text: loadingText || '正在翻译…', state: 'loading' };
+    back = { forText: '', label, text: loadingText || tr('正在翻译…'), state: 'loading' };
     renderBack();
     const resp = await send({ type: 'translate', texts: [text], target, direction: 'outgoing' });
     if (!resp.ok) { await replaceInput(input, text); back = null; renderBack(); toast(resp.error, true); return false; }
@@ -689,7 +694,7 @@
     await replaceInput(input, out);
     lastOriginal = text;
     backSeq++;
-    back = { forText: norm(out), label: label + '原文', text, state: 'ok' };
+    back = { forText: norm(out), label: tr('{label}原文', { label }), text, state: 'ok' };
     renderBack();
     updateBar();
     return true;
@@ -697,7 +702,7 @@
 
   async function insertPhrase(p) {
     closePhrases();
-    await insertChinese(p.text, '话术', `正在翻译“${p.key}”…`);
+    await insertChinese(p.text, tr('话术'), tr('正在翻译“{k}”…', { k: p.key }));
   }
 
   // 监听输入框：内容以 / 开头时弹出话术
@@ -741,20 +746,30 @@
   const langMode = document.createElement('span');
   langMode.className = 'wadl-mode';
   const langSel = document.createElement('select');
-  langSel.add(new Option('↺ 恢复自动识别', '__auto'));
-  for (const [code, name, , deepl] of WADL_LANGS) langSel.add(new Option(deepl ? name : name + '（AI）', code));
   const phBtn = document.createElement('button');
   phBtn.className = 'wadl-ph';
-  phBtn.textContent = '话';
-  phBtn.title = '快捷话术（也可在输入框输入 / 调出）';
   const goBtn = document.createElement('button');
   goBtn.className = 'wadl-go';
-  goBtn.textContent = '译';
-  goBtn.title = '翻译输入框内容（Alt+T）';
   const undoBtn = document.createElement('button');
   undoBtn.className = 'wadl-undo';
-  undoBtn.textContent = '↩ 原文';
-  undoBtn.title = '恢复翻译前的原文';
+  // 界面语言切换时重新设置工具条文字
+  function applyLabels() {
+    const v = langSel.value;
+    langSel.textContent = '';
+    langSel.add(new Option(tr('↺ 恢复自动识别'), '__auto'));
+    for (const l of WADL_LANGS) langSel.add(new Option(tlLangOption(l), l[0]));
+    if (v) langSel.value = v;
+    phBtn.textContent = tr('话');
+    phBtn.title = tr('快捷话术（也可在输入框输入 / 调出）');
+    if (!busy) goBtn.textContent = tr('译');
+    goBtn.title = tr('翻译输入框内容（Alt+T）');
+    undoBtn.textContent = tr('↩ 原文');
+    undoBtn.title = tr('恢复翻译前的原文');
+    backRedo.title = tr('按输入框当前内容重新回译（Alt+B）');
+    backClose.title = tr('关闭');
+    bar.classList.toggle('wadl-en', TL_LANG === 'en');
+  }
+  applyLabels();
   bar.append(engBtn, langMode, langSel, goBtn, undoBtn, phBtn);
   document.body.append(bar, backBox, phraseBox);
 
@@ -763,7 +778,7 @@
   engBtn.addEventListener('click', () => {
     const next = otherEngine(settings.outgoingEngine);
     if (next) chrome.storage.local.set({ outgoingEngine: next });
-    else toast('只填写了一个引擎的 Key，无法切换');
+    else toast(tr('只填写了一个引擎的 Key，无法切换'));
   });
   goBtn.addEventListener('click', translateOutgoing);
   undoBtn.addEventListener('click', undoOutgoing);
@@ -777,7 +792,7 @@
       recomputeChat(chat);
       const top = chatLangs[chat] && chatLangs[chat].l;
       saveChatLangs();
-      toast(top ? '已恢复自动识别' : '已恢复自动识别（等客户发来消息后自动设置）');
+      toast(top ? tr('已恢复自动识别') : tr('已恢复自动识别（等客户发来消息后自动设置）'));
     } else {
       chatLangs[chat] = { l: v, m: true, t: Date.now() };
       saveChatLangs();
@@ -819,16 +834,16 @@
     const cur = currentTarget();
     if (langSel.value !== cur.lang) langSel.value = cur.lang;
     langSel.options[0].hidden = !cur.chat || cur.mode !== 'manual';
-    langMode.textContent = cur.mode === 'manual' ? '手动' : cur.mode === 'auto' ? '自动' : '默认';
+    langMode.textContent = cur.mode === 'manual' ? tr('手动') : cur.mode === 'auto' ? tr('自动') : tr('默认');
     langMode.className = 'wadl-mode wadl-mode-' + cur.mode;
-    langSel.title = cur.mode === 'manual' ? '已为这个聊天手动指定语言（选“恢复自动识别”可取消）'
-      : cur.mode === 'auto' ? '根据客户消息自动识别的语言（手动选择后将固定为该语言）'
-      : '默认语言（客户发来消息后会自动识别；也可手动为这个聊天指定）';
+    langSel.title = cur.mode === 'manual' ? tr('已为这个聊天手动指定语言（选“恢复自动识别”可取消）')
+      : cur.mode === 'auto' ? tr('根据客户消息自动识别的语言（手动选择后将固定为该语言）')
+      : tr('默认语言（客户发来消息后会自动识别；也可手动为这个聊天指定）');
     const eng = settings.outgoingEngine;
     engBtn.textContent = WADL_ENGINE_TAGS[eng] || eng;
     engBtn.classList.toggle('wadl-eng-ai', eng === 'deepseek');
     engBtn.classList.toggle('wadl-eng-qwen', eng === 'qwen');
-    engBtn.title = `发送翻译引擎：${engineName(settings.outgoingEngine)}（点击切换）`;
+    engBtn.title = tr('发送翻译引擎：{e}（点击切换）', { e: engineName(settings.outgoingEngine) });
     if (!norm(input.innerText)) { lastOriginal = null; if (back) { back = null; backSeq++; } if (phraseOpen) closePhrases(); }
     undoBtn.style.display = lastOriginal != null ? '' : 'none';
     phBtn.style.display = settings.phrases && settings.phrases.trim() ? '' : 'none';
@@ -905,9 +920,11 @@
     console.log(report);
     try {
       await navigator.clipboard.writeText(report);
-      toast('诊断信息已复制到剪贴板（不含消息内容），请粘贴发给开发者');
+      toast(tr('诊断信息已复制到剪贴板（不含消息内容），请粘贴发给开发者'));
+      return true;
     } catch (e) {
-      toast('无法写入剪贴板，请按 F12 在 Console 中复制 [WADL] 诊断内容', true);
+      toast(tr('无法写入剪贴板，请按 F12 在 Console 中复制 [WADL] 诊断内容'), true);
+      return false;
     }
   }
 
@@ -945,6 +962,106 @@
     }
   }, true);
 
+  // ---------- 健康检查：WhatsApp 改版后识别不到关键元素时，明确提示用户 ----------
+  // 只在“页面上明显有聊天内容，插件却认不出来”时报警，并且要连续多次（约 15 秒）才提示，避免误报。
+  const HEALTH_NEED = 3;
+  let healthStreak = 0;
+  let healthPend = '';     // 正在累计的问题组合
+  let healthKey = '';      // 已经提示过的问题组合
+  let healthDismissed = false;
+  let healthUpdateAsked = false;
+  const healthBox = document.createElement('div');
+  healthBox.id = 'tl-health';
+  healthBox.style.display = 'none';
+  document.body.appendChild(healthBox);
+
+  // 聊天区域里“看起来像消息”的行：在输入框上方、带有较长文字
+  function visibleChatRows(input) {
+    const ir = input && input.getBoundingClientRect();
+    let n = 0;
+    for (const row of document.querySelectorAll('[role="row"], [data-id], [role="listitem"]')) {
+      if (isOurs(row) || row.querySelector('[role="row"], [data-id]')) continue;
+      const r = row.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (ir ? (r.right < ir.left + 20 || r.bottom > ir.top + 5) : r.left < window.innerWidth * 0.3) continue;
+      const t = norm(row.innerText || '').replace(/\d{1,2}:\d{2}(\s?[AaPp][Mm])?/g, '');
+      if (t.length >= 12) n++;
+      if (n >= 3) break;
+    }
+    return n;
+  }
+
+  // 返回识别不到的部分：messages / input / chat
+  function healthProblems() {
+    if (!settings.enabled || document.hidden) return null; // null = 本次不判断
+    const input = getInput();
+    const msgs = findMessages();
+    const problems = [];
+    if (input && !msgs.length && visibleChatRows(input) >= 3) problems.push('messages');
+    if (!input && msgs.length >= 3 && (document.querySelector('footer') || document.querySelector('[role="textbox"]'))) problems.push('input');
+    if (msgs.length >= 3 && !currentChatKey()) problems.push('chat');
+    return problems;
+  }
+
+  const PROBLEM_TEXT = {
+    messages: () => tr('聊天消息'),
+    input: () => tr('输入框'),
+    chat: () => tr('当前聊天')
+  };
+
+  function renderHealth(problems) {
+    healthBox.textContent = '';
+    const msg = document.createElement('div');
+    msg.className = 'tl-h-msg';
+    const b = document.createElement('b');
+    b.textContent = tr('TradeLingo 认不出 WhatsApp 页面上的：{what}', { what: problems.map((x) => PROBLEM_TEXT[x]()).join(tr('、')) });
+    const p = document.createElement('div');
+    p.textContent = tr('WhatsApp 网页可能刚改版，翻译和工具条可能暂时不能正常工作。请先检查插件有没有新版本；没有的话，复制诊断信息反馈给开发者。');
+    msg.append(b, p);
+    const ops = document.createElement('div');
+    ops.className = 'tl-h-ops';
+    const mk = (text, cls, fn) => { const x = document.createElement('button'); x.textContent = text; x.className = cls; x.addEventListener('click', fn); return x; };
+    const status = document.createElement('div');
+    status.className = 'tl-h-status';
+    ops.append(
+      mk(tr('检查插件更新'), 'tl-h-primary', async () => {
+        status.textContent = tr('正在检查…');
+        const r = await send({ type: 'checkUpdate' });
+        if (r.ok && r.info && r.info.hasNew) { status.textContent = tr('有新版本 v{v}，已打开下载页面。', { v: r.info.latest }); send({ type: 'openOptions', hash: 'update' }); }
+        else if (r.ok && r.info && !r.info.error) status.textContent = tr('暂时没有新版本。请复制诊断信息，到 GitHub Issues 反馈，开发者会尽快修复。');
+        else status.textContent = tr('无法连接 GitHub 检查更新：{e}', { e: (r.info && r.info.error) || r.error || '' });
+      }),
+      mk(tr('复制诊断信息'), '', async () => { if (await diagnose()) status.textContent = tr('已复制（不含消息内容）。可以发到 GitHub Issues，或发给推荐你用这个插件的人。'); }),
+      mk(tr('去反馈'), '', () => window.open(WADL_REPO + '/issues', '_blank', 'noopener')),
+      mk('×', 'tl-h-x', () => { healthDismissed = true; healthBox.style.display = 'none'; })
+    );
+    healthBox.append(msg, ops, status);
+    healthBox.style.display = 'block';
+  }
+
+  function checkHealth() {
+    const problems = healthProblems();
+    if (problems === null) return;
+    const key = problems.join(',');
+    if (!problems.length) {
+      healthStreak = 0;
+      healthPend = '';
+      if (healthKey) { healthKey = ''; healthBox.style.display = 'none'; chrome.storage.local.set({ wadlHealth: { ok: true, at: Date.now(), v: VERSION } }); }
+      return;
+    }
+    if (key !== healthPend) { healthPend = key; healthStreak = 0; }
+    if (++healthStreak < HEALTH_NEED) return;
+    if (key !== healthKey) {
+      healthKey = key;
+      chrome.storage.local.set({ wadlHealth: { ok: false, problems, at: Date.now(), v: VERSION } });
+      console.warn('[TradeLingo] 识别不到：' + key);
+      // 先在后台查一次新版本：如果已经修好，图标上会出现“新”
+      if (!healthUpdateAsked) { healthUpdateAsked = true; send({ type: 'checkUpdate' }); }
+    }
+    if (!healthDismissed) renderHealth(problems);
+  }
+  setInterval(checkHealth, 5000);
+
   // ---------- 启动与监听 ----------
   let pending = false;
   const observer = new MutationObserver(() => {
@@ -964,6 +1081,7 @@
       if (!(k in WADL_DEFAULTS)) continue;
       settings[k] = changes[k].newValue;
       if (RESET_KEYS.includes(k)) needReset = true;
+      if (k === 'uiLang') { tlSetUiLang(settings.uiLang); applyLabels(); needReset = true; }
     }
     if (needReset) { resetAll(); scan(); }
     updateBar();
@@ -976,6 +1094,8 @@
 
   chrome.storage.local.get(WADL_DEFAULTS).then((s) => {
     settings = s;
+    tlSetUiLang(s.uiLang);
+    applyLabels();
     scan();
     updateBar();
   });
@@ -983,7 +1103,7 @@
   // 供 deal.js（商机功能）调用的内部接口
   window.__tradelingo = {
     bar, send, toast, norm, findMessages, isOutgoing, currentChatKey, headerName, getInput,
-    insertChinese, currentTarget, updateBar,
+    insertChinese, currentTarget, updateBar, healthProblems, checkHealth,
     settings: () => settings
   };
 })();

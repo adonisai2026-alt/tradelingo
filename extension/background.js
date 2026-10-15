@@ -1,5 +1,5 @@
 // TradeLingo — 后台 service worker：调用 DeepL / Qwen-MT / DeepSeek（避开网页 CORS 限制）+ 翻译缓存 + 自动备用引擎
-importScripts('common.js', 'dealcore.js');
+importScripts('i18n.js', 'common.js', 'dealcore.js');
 
 const CACHE_MAX = 3000;
 const DEEPSEEK_BASE = 'https://api.deepseek.com';
@@ -9,7 +9,9 @@ let cache = null;
 let saveTimer = null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const getSettings = () => chrome.storage.local.get(WADL_DEFAULTS);
+const getSettings = () => chrome.storage.local.get(WADL_DEFAULTS).then((s) => { tlSetUiLang(s.uiLang); return s; });
+chrome.storage.local.get({ uiLang: 'auto' }).then((r) => tlSetUiLang(r.uiLang));
+chrome.storage.onChanged.addListener((ch, area) => { if (area === 'local' && ch.uiLang) tlSetUiLang(ch.uiLang.newValue); });
 const hash = (s) => { let h = 0; for (const c of s || '') h = (h * 31 + c.codePointAt(0)) | 0; return h.toString(36); };
 
 class ApiError extends Error {
@@ -77,14 +79,14 @@ const deeplBase = (key) => (key.trim().endsWith(':fx') ? 'https://api-free.deepl
 
 function deeplErr(status, body) {
   switch (status) {
-    case -1: return 'DeepL 响应超时';
-    case 0: return '网络错误，无法连接 DeepL';
-    case 403: return 'DeepL API Key 无效';
-    case 456: return '本月 DeepL 字符额度已用完';
-    case 429: return 'DeepL 请求过于频繁，请稍后再试';
-    case 413: return '文本过长';
-    case 400: return 'DeepL 参数错误：' + (body || '').slice(0, 120);
-    default: return `DeepL 返回错误 ${status}`;
+    case -1: return tr('DeepL 响应超时');
+    case 0: return tr('网络错误，无法连接 DeepL');
+    case 403: return tr('DeepL API Key 无效');
+    case 456: return tr('本月 DeepL 字符额度已用完');
+    case 429: return tr('DeepL 请求过于频繁，请稍后再试');
+    case 413: return tr('文本过长');
+    case 400: return tr('DeepL 参数错误：') + (body || '').slice(0, 120);
+    default: return tr('DeepL 返回错误 {s}', { s: status });
   }
 }
 
@@ -107,18 +109,18 @@ async function deeplTranslate(texts, target, s, direction) {
 // ---------- DeepSeek ----------
 function dsErr(status, body) {
   switch (status) {
-    case -1: return 'DeepSeek 响应超时';
-    case 0: return '网络错误，无法连接 DeepSeek';
-    case 401: return 'DeepSeek API Key 无效';
-    case 402: return 'DeepSeek 账户余额不足';
-    case 429: return 'DeepSeek 请求过于频繁，请稍后再试';
+    case -1: return tr('DeepSeek 响应超时');
+    case 0: return tr('网络错误，无法连接 DeepSeek');
+    case 401: return tr('DeepSeek API Key 无效');
+    case 402: return tr('DeepSeek 账户余额不足');
+    case 429: return tr('DeepSeek 请求过于频繁，请稍后再试');
     case 400: case 422: {
       let m = body || '';
       try { m = JSON.parse(body).error.message || m; } catch (e) { /* 非 JSON */ }
-      return 'DeepSeek 请求错误：' + String(m).slice(0, 150);
+      return tr('DeepSeek 请求错误：') + String(m).slice(0, 150);
     }
-    case 503: return 'DeepSeek 服务器繁忙，请稍后再试';
-    default: return `DeepSeek 返回错误 ${status}`;
+    case 503: return tr('DeepSeek 服务器繁忙，请稍后再试');
+    default: return tr('DeepSeek 返回错误 {s}', { s: status });
   }
 }
 
@@ -169,8 +171,8 @@ function parseJsonContent(content) {
   const t = (content || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
   const a = t.indexOf('{');
   const b = t.lastIndexOf('}');
-  if (a < 0 || b < a) throw new ApiError('DeepSeek 返回格式异常', -2);
-  try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { throw new ApiError('DeepSeek 返回格式异常', -2); }
+  if (a < 0 || b < a) throw new ApiError(tr('DeepSeek 返回格式异常'), -2);
+  try { return JSON.parse(t.slice(a, b + 1)); } catch (e) { throw new ApiError(tr('DeepSeek 返回格式异常'), -2); }
 }
 
 // 按条数和字数分批，避免单次输出过长
@@ -251,15 +253,15 @@ async function deepseekChat(key, body) {
         }
         if (content.length > 200 && !content.trim()) { abort('blank'); break; }
       }
-      if (why === 'blank') throw new ApiError('DeepSeek 返回了空白内容', -2);
-      if (finish === 'length') throw new ApiError('DeepSeek 返回内容不完整（被截断）', -2);
-      if (!content.trim()) throw new ApiError('DeepSeek 没有返回内容', -2);
+      if (why === 'blank') throw new ApiError(tr('DeepSeek 返回了空白内容'), -2);
+      if (finish === 'length') throw new ApiError(tr('DeepSeek 返回内容不完整（被截断）'), -2);
+      if (!content.trim()) throw new ApiError(tr('DeepSeek 没有返回内容'), -2);
       console.debug(`[WADL] DeepSeek ${body.model} 用时 ${Date.now() - t0}ms，推理字数 ${reasoning}`);
       return content;
     } catch (e) {
       if (e instanceof ApiError) throw e;
-      if (why === 'idle') throw new ApiError('DeepSeek 连接卡住（25 秒无数据），可能是网络或代理问题', -1);
-      if (why === 'total') throw new ApiError('DeepSeek 响应超时（超过 90 秒）', -1);
+      if (why === 'idle') throw new ApiError(tr('DeepSeek 连接卡住（25 秒无数据），可能是网络或代理问题'), -1);
+      if (why === 'total') throw new ApiError(tr('DeepSeek 响应超时（超过 90 秒）'), -1);
       throw new ApiError(dsErr(0, ''), 0);
     } finally {
       clearTimeout(idle);
@@ -294,7 +296,7 @@ async function deepseekTranslate(texts, target, s, direction, context) {
     const items = Array.isArray(parsed.items) ? parsed.items : [];
     idx.forEach((i, k) => {
       const it = items.find((x) => Number(x.id) === k) || (items.length === idx.length ? items[k] : null);
-      if (!it || typeof it.text !== 'string' || !it.text.trim()) throw new ApiError('DeepSeek 返回格式异常', -2);
+      if (!it || typeof it.text !== 'string' || !it.text.trim()) throw new ApiError(tr('DeepSeek 返回格式异常'), -2);
       out[i] = { text: it.text, detected: String(it.lang || '').toUpperCase() };
     });
   }
@@ -323,15 +325,15 @@ function qwenErr(status, body) {
     msg = (j.error && j.error.message) || j.message || '';
     code = (j.error && j.error.code) || j.code || '';
   } catch (e) { msg = body || ''; }
-  if (/Arrearage|overdue|欠费/i.test(code + msg)) return '阿里云账户欠费，请到阿里云费用中心充值';
+  if (/Arrearage|overdue|欠费/i.test(code + msg)) return tr('阿里云账户欠费，请到阿里云费用中心充值');
   switch (status) {
-    case -1: return 'Qwen-MT 响应超时';
-    case 0: return '网络错误，无法连接阿里云百炼';
-    case 401: return 'Qwen-MT API Key 无效（注意：北京地域的 Key 不能用于国际地域，反之亦然）';
-    case 403: return 'Qwen-MT 无权限：请确认已在百炼开通该模型（' + String(msg).slice(0, 80) + '）';
-    case 429: return 'Qwen-MT 请求过于频繁，请稍后再试';
-    case 400: case 404: return 'Qwen-MT 请求错误：' + String(msg || code).slice(0, 150);
-    default: return `Qwen-MT 返回错误 ${status}`;
+    case -1: return tr('Qwen-MT 响应超时');
+    case 0: return tr('网络错误，无法连接阿里云百炼');
+    case 401: return tr('Qwen-MT API Key 无效（注意：北京地域的 Key 不能用于国际地域，反之亦然）');
+    case 403: return tr('Qwen-MT 无权限：请确认已在百炼开通该模型（{x}）', { x: String(msg).slice(0, 80) });
+    case 429: return tr('Qwen-MT 请求过于频繁，请稍后再试');
+    case 400: case 404: return tr('Qwen-MT 请求错误：') + String(msg || code).slice(0, 150);
+    default: return tr('Qwen-MT 返回错误 {s}', { s: status });
   }
 }
 
@@ -375,7 +377,7 @@ async function qwenOne(text, target, s, direction) {
     })
   }, qwenErr, 30000);
   const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if (!content || !content.trim()) throw new ApiError('Qwen-MT 没有返回内容', -2);
+  if (!content || !content.trim()) throw new ApiError(tr('Qwen-MT 没有返回内容'), -2);
   return { text: content.trim(), detected: '' }; // Qwen-MT 不返回源语言
 }
 
@@ -431,13 +433,13 @@ async function translate(msg) {
   // source：已知原文语言时传入（如回译），DeepL 不认识该语言就不用 DeepL
   const usable = (e) => has[e] && (e !== 'deepl' || (DEEPL_TARGETS.has(target) && (!source || DEEPL_TARGETS.has(source))));
 
-  if (!has.deepl && !has.deepseek && !has.qwen) throw new Error('请先点击工具栏的插件图标，填写至少一个翻译引擎的 API Key');
+  if (!has.deepl && !has.deepseek && !has.qwen) throw new Error(tr('请先点击工具栏的插件图标，填写至少一个翻译引擎的 API Key'));
 
   const wanted = forced || (direction === 'outgoing' ? s.outgoingEngine : s.incomingEngine);
   const candidates = [wanted, ...ENGINE_ORDER.filter((e) => e !== wanted)].filter(usable);
   if (!candidates.length) {
-    if (wanted === 'deepl' && !DEEPL_TARGETS.has(target)) throw new Error('DeepL 不支持该语言，请填写 Qwen-MT 或 DeepSeek 的 Key');
-    throw new Error(`尚未填写 ${WADL_ENGINES[wanted]} 的 API Key`);
+    if (wanted === 'deepl' && !DEEPL_TARGETS.has(target)) throw new Error(tr('DeepL 不支持该语言，请填写 Qwen-MT 或 DeepSeek 的 Key'));
+    throw new Error(tr('尚未填写 {e} 的 API Key', { e: WADL_ENGINES[wanted] }));
   }
 
   let firstErr = null;
@@ -447,8 +449,8 @@ async function translate(msg) {
       let note = '';
       if (engine !== wanted) {
         note = firstErr
-          ? `${WADL_ENGINES[wanted]} 出错（${firstErr.message}），已改用 ${WADL_ENGINES[engine]}`
-          : wanted === 'deepl' && has.deepl ? `DeepL 不支持该语言，已用 ${WADL_ENGINES[engine]}` : '';
+          ? tr('{a} 出错（{err}），已改用 {b}', { a: WADL_ENGINES[wanted], err: firstErr.message, b: WADL_ENGINES[engine] })
+          : wanted === 'deepl' && has.deepl ? tr('DeepL 不支持该语言，已用 {b}', { b: WADL_ENGINES[engine] }) : '';
       }
       return { results, engine, note };
     } catch (e) {
@@ -461,19 +463,19 @@ async function translate(msg) {
 // ---------- 连接测试 ----------
 async function testEngine(engine, key, model, region) {
   key = (key || '').trim();
-  if (!key) throw new Error('请先填写 API Key');
+  if (!key) throw new Error(tr('请先填写 API Key'));
   if (engine === 'deepl') {
     const d = await fetchJson(deeplBase(key) + '/v2/usage', {
       headers: { Authorization: 'DeepL-Auth-Key ' + key }
     }, deeplErr, 15000);
     const pct = d.character_limit ? Math.round((d.character_count / d.character_limit) * 100) : 0;
-    return `连接成功（${key.endsWith(':fx') ? 'Free' : 'Pro'}）：本期已用 ${d.character_count.toLocaleString()} / ${d.character_limit.toLocaleString()} 字符（${pct}%）`;
+    return tr('连接成功（{plan}）：本期已用 {used} / {limit} 字符（{pct}%）', { plan: key.endsWith(':fx') ? 'Free' : 'Pro', used: d.character_count.toLocaleString('en-US'), limit: d.character_limit.toLocaleString('en-US'), pct });
   }
   if (engine === 'qwen') {
     const s = { ...(await getSettings()), qwenKey: key, qwenModel: wadlQwenModel(model), qwenRegion: region || 'beijing' };
     const t0 = Date.now();
     const r = await qwenOne('你好，请问这款断路器的交期是多久？', 'EN-US', s, 'outgoing');
-    return `连接成功（${((Date.now() - t0) / 1000).toFixed(1)}s）：试译 “${r.text}”`;
+    return tr('连接成功（{t}s）：试译 “{x}”', { t: ((Date.now() - t0) / 1000).toFixed(1), x: r.text });
   }
   // DeepSeek 第 1 步：网络 + Key + 余额
   let t0 = Date.now();
@@ -483,11 +485,11 @@ async function testEngine(engine, key, model, region) {
       headers: { Authorization: 'Bearer ' + key }
     }, dsErr, 15000);
   } catch (e) {
-    throw new Error(`第 1 步（连接 / 余额）失败：${e.message}`);
+    throw new Error(tr('第 1 步（连接 / 余额）失败：{e}', { e: e.message }));
   }
   const step1 = ((Date.now() - t0) / 1000).toFixed(1);
-  const bal = (d.balance_infos || []).map((b) => `${b.total_balance} ${b.currency}`).join(' / ') || '未知';
-  if (d.is_available === false) throw new Error(`第 1 步通过（${step1}s），但账户余额不足：${bal}`);
+  const bal = (d.balance_infos || []).map((b) => `${b.total_balance} ${b.currency}`).join(' / ') || tr('未知');
+  if (d.is_available === false) throw new Error(tr('第 1 步通过（{t}s），但账户余额不足：{b}', { t: step1, b: bal }));
 
   // 第 2 步：用所选模型试译一句
   t0 = Date.now();
@@ -496,10 +498,10 @@ async function testEngine(engine, key, model, region) {
   try {
     r = await deepseekTranslate(['你好'], 'EN-US', s, 'outgoing', null);
   } catch (e) {
-    throw new Error(`第 1 步通过（${step1}s，余额 ${bal}）；第 2 步（试译）失败：${e.message}`);
+    throw new Error(tr('第 1 步通过（{t}s，余额 {b}）；第 2 步（试译）失败：{e}', { t: step1, b: bal, e: e.message }));
   }
   const step2 = ((Date.now() - t0) / 1000).toFixed(1);
-  return `连接成功：余额 ${bal}（${step1}s）；试译 “${r[0].text}”（${step2}s）`;
+  return tr('连接成功：余额 {b}（{t1}s）；试译 “{x}”（{t2}s）', { b: bal, t1: step1, x: r[0].text, t2: step2 });
 }
 
 
@@ -521,7 +523,7 @@ const DEAL_SCHEMA = `{
   "summary": ["3–5 条中文要点"]
 }`;
 
-function dealSystemPrompt(mode) {
+function dealSystemPrompt(mode, lang) {
   const lines = [
     '你是一名资深外贸销售教练，服务于一家出口低压电器（MCCB、MCB、ACB、RCBO、RCCB、ATS、SPD、接触器、继电器、变频器、软启动器、光伏水泵逆变器等）的公司。',
     '用户会提供 WhatsApp 聊天记录（JSON）。每条消息有 id、time、who（“我方”是我们的销售，“客户”是对方）和 text。',
@@ -549,13 +551,16 @@ function dealSystemPrompt(mode) {
       'commitments 和 quotes 要保留原有条目，并追加新条目。'
     );
   }
+  if (lang === 'en') {
+    lines.push('输出语言：用户使用英文界面。所有自由文本（reason、basis、needs.item、terms、blockers.text、next.action、next.draft_zh、commitments.what、quotes.price、quotes.item、missing.field、missing.ask_zh、summary、customer.country、changed.reason）一律用英文书写，draft_zh 和 ask_zh 也写成英文（字段名不变）。枚举值必须保持上面列出的中文原值：heat.level（高/中/低）、stage、who 和 owner（我方/客户）、customer.type。本条优先于前面关于“中文”的要求。');
+  }
   return lines.join('\n');
 }
 
 async function dealAnalyze(msg) {
   const s = await getSettings();
   const key = (s.deepseekKey || '').trim();
-  if (!key) throw new Error('商机功能使用 DeepSeek，请先在设置页填写 DeepSeek API Key');
+  if (!key) throw new Error(tr('商机功能使用 DeepSeek，请先在设置页填写 DeepSeek API Key'));
   const mode = msg.mode === 'update' ? 'update' : 'full';
   const payload = { today: msg.today, chat_title: msg.title || '', messages: msg.messages || [] };
   if (mode === 'update') { payload.card = msg.card || {}; payload.locked = msg.locked || []; }
@@ -563,7 +568,7 @@ async function dealAnalyze(msg) {
   const content = await deepseekChat(key, {
     model: wadlDsModel(s.deepseekModel),
     messages: [
-      { role: 'system', content: dealSystemPrompt(mode) },
+      { role: 'system', content: dealSystemPrompt(mode, msg.lang === 'en' ? 'en' : 'zh') },
       { role: 'user', content: JSON.stringify(payload) }
     ],
     thinking: { type: 'disabled' },
@@ -572,7 +577,7 @@ async function dealAnalyze(msg) {
   });
   const card = parseJsonContent(content);
   if (!card || typeof card !== 'object' || !card.stage && !card.heat && !card.needs) {
-    throw new ApiError('DeepSeek 返回的作战卡格式异常，请重试', -2);
+    throw new ApiError(tr('DeepSeek 返回的作战卡格式异常，请重试'), -2);
   }
   return card;
 }
@@ -604,8 +609,8 @@ function planReminders(deals, s, notified, now) {
     const ranked = Object.entries(deals).map(([k, r]) => ({ k, r, ...tlScore(r, now) })).filter((x) => x.reasons.length).sort((a, b) => b.score - a.score);
     marks.__digest = today;
     if (ranked.length) {
-      const top = ranked.slice(0, 3).map((x, i) => `${i + 1}. ${tlDealTitle(x.r)}：${x.reasons[0]}`);
-      out.push({ id: 'tl-digest-' + today, title: `今日跟进：${ranked.length} 个客户需要处理`, message: top.join('\n') });
+      const top = ranked.slice(0, 3).map((x, i) => `${i + 1}. ${tlDealTitle(x.r)}${tr('：')}${x.reasons[0]}`);
+      out.push({ id: 'tl-digest-' + today, title: tr('今日跟进：{n} 个客户需要处理', { n: ranked.length }), message: top.join('\n') });
     }
   }
   if (s.notifyEnabled) {
@@ -619,7 +624,7 @@ function planReminders(deals, s, notified, now) {
           const key = `c|${chat}|${c.what}|${c.due}`;
           if (notified[key] === today) continue;
           marks[key] = today;
-          out.push({ id: 'tl-c-' + chat + '-' + out.length, title: `${c.due < today ? '承诺已逾期' : '承诺今天到期'}：${name}`, message: `我方承诺：${c.what}` });
+          out.push({ id: 'tl-c-' + chat + '-' + out.length, title: (c.due < today ? tr('承诺已逾期') : tr('承诺今天到期')) + tr('：') + name, message: tr('我方承诺：{x}', { x: c.what }) });
         }
       }
       const nx = card.next;
@@ -627,14 +632,14 @@ function planReminders(deals, s, notified, now) {
         const key = `n|${chat}|${nx.action}|${nx.due}`;
         if (notified[key] !== today) {
           marks[key] = today;
-          out.push({ id: 'tl-n-' + chat + '-' + out.length, title: `下一步${nx.due < today ? '已逾期' : '今天到期'}：${name}`, message: nx.action });
+          out.push({ id: 'tl-n-' + chat + '-' + out.length, title: (nx.due < today ? tr('下一步已逾期') : tr('下一步今天到期')) + tr('：') + name, message: nx.action });
         }
       }
       if (rec.lastIn && rec.lastIn > (rec.lastOut || 0) && now - rec.lastIn >= waitMs) {
         const key = `w|${chat}|${rec.lastIn}`;
         if (!notified[key]) {
           marks[key] = today;
-          out.push({ id: 'tl-w-' + chat, title: `客户在等你回复：${name}`, message: `已等待 ${tlAgo(now - rec.lastIn)}` });
+          out.push({ id: 'tl-w-' + chat, title: tr('客户在等你回复：{x}', { x: name }), message: tr('已等待 {t}', { t: tlAgo(now - rec.lastIn) }) });
         }
       }
     }
@@ -642,7 +647,7 @@ function planReminders(deals, s, notified, now) {
   // 一次最多弹 4 条，其余合并成一条
   const digest = out.filter((n) => n.id.startsWith('tl-digest'));
   const rest = out.filter((n) => !n.id.startsWith('tl-digest'));
-  const shown = rest.length > 4 ? [...rest.slice(0, 3), { id: 'tl-more-' + now, title: `还有 ${rest.length - 3} 条跟进提醒`, message: '点击打开今日跟进查看全部' }] : rest;
+  const shown = rest.length > 4 ? [...rest.slice(0, 3), { id: 'tl-more-' + now, title: tr('还有 {n} 条跟进提醒', { n: rest.length - 3 }), message: tr('点击打开今日跟进查看全部') }] : rest;
   return { list: [...digest, ...shown], marks };
 }
 
@@ -672,26 +677,29 @@ const UPDATE_EVERY = 20 * 3600000;
 
 function setBadge(hasNew) {
   try {
-    chrome.action.setBadgeText({ text: hasNew ? '新' : '' });
+    chrome.action.setBadgeText({ text: hasNew ? tr('新') : '' });
     if (hasNew) chrome.action.setBadgeBackgroundColor({ color: '#e02424' });
-    chrome.action.setTitle({ title: hasNew ? 'TradeLingo：有新版本，点击查看' : 'TradeLingo' });
+    chrome.action.setTitle({ title: hasNew ? tr('TradeLingo：有新版本，点击查看') : 'TradeLingo' });
   } catch (e) { /* 忽略 */ }
 }
 
 // 解析 update.json（纯函数，便于测试）
 function parseUpdate(j, current) {
-  if (!j || typeof j.version !== 'string' || !/^\d+(\.\d+)*$/.test(j.version)) throw new Error('更新信息格式不对');
-  const notes = Array.isArray(j.notes) ? j.notes.filter((x) => typeof x === 'string').slice(0, 8) : [];
+  if (!j || typeof j.version !== 'string' || !/^\d+(\.\d+)*$/.test(j.version)) throw new Error(tr('更新信息格式不对'));
+  const list = (a) => (Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(0, 8) : []);
+  const notes = list(j.notes);
+  const notesEn = list(j.notes_en);
   const safe = (u, d) => (typeof u === 'string' && u.startsWith('https://github.com/adonisai2026-alt/tradelingo') ? u : d);
   return {
-    latest: j.version, current, hasNew: wadlVerCmp(j.version, current) > 0, date: typeof j.date === 'string' ? j.date.slice(0, 10) : '', notes,
+    latest: j.version, current, hasNew: wadlVerCmp(j.version, current) > 0, date: typeof j.date === 'string' ? j.date.slice(0, 10) : '', notes, notes_en: notesEn,
     download: safe(j.download, WADL_REPO + '/archive/refs/heads/main.zip'), changelog: safe(j.changelog, WADL_REPO + '/blob/main/CHANGELOG.md')
   };
 }
 
 async function checkUpdate(force) {
   const current = chrome.runtime.getManifest().version;
-  const st = await chrome.storage.local.get({ updateCheck: true, wadlUpdate: null });
+  const st = await chrome.storage.local.get({ updateCheck: true, wadlUpdate: null, uiLang: 'auto' });
+  tlSetUiLang(st.uiLang);
   const old = st.wadlUpdate;
   if (!force) {
     if (!st.updateCheck) { setBadge(false); return old; }
@@ -705,10 +713,10 @@ async function checkUpdate(force) {
       if (!res.ok) { lastErr = 'HTTP ' + res.status; continue; }
       info = parseUpdate(await res.json(), current);
       break;
-    } catch (e) { lastErr = e.name === 'TimeoutError' ? '连接超时' : e.message; }
+    } catch (e) { lastErr = e.name === 'TimeoutError' ? tr('连接超时') : e.message; }
   }
   if (!info) {
-    const rec = { ...(old || {}), current, hasNew: !!(old && wadlVerCmp(old.latest, current) > 0), checkedAt: Date.now(), error: '无法连接 GitHub（' + lastErr + '）' };
+    const rec = { ...(old || {}), current, hasNew: !!(old && wadlVerCmp(old.latest, current) > 0), checkedAt: Date.now(), error: tr('无法连接 GitHub（{e}）', { e: lastErr }) };
     await chrome.storage.local.set({ wadlUpdate: rec });
     setBadge(rec.hasNew);
     return rec;
@@ -717,7 +725,8 @@ async function checkUpdate(force) {
   info.notifiedFor = old && old.notifiedFor;
   if (info.hasNew && info.notifiedFor !== info.latest) {
     info.notifiedFor = info.latest;
-    notify('upd-' + info.latest, `TradeLingo 有新版本 v${info.latest}`, (info.notes[0] ? info.notes.slice(0, 2).join('；') + '\n' : '') + '点击查看更新内容和下载');
+    const notes = TL_LANG === 'en' && info.notes_en.length ? info.notes_en : info.notes;
+    notify('upd-' + info.latest, tr('TradeLingo 有新版本 v{v}', { v: info.latest }), (notes[0] ? notes.slice(0, 2).join(tr('；')) + '\n' : '') + tr('点击查看更新内容和下载'));
   }
   await chrome.storage.local.set({ wadlUpdate: info });
   setBadge(info.hasNew);
@@ -736,7 +745,16 @@ ensureAlarm();
 // 升级迁移：旧模型名改为 deepseek-flash；v0.3 起发送默认改用 Qwen-MT（只迁移一次）
 chrome.runtime.onInstalled.addListener(async (details) => {
   // 第一次安装：打开使用向导；升级后：重新判断是否还有更新（刚升级完就去掉“新”角标）
-  if (details && details.reason === 'install') chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+  if (details && details.reason === 'install') {
+    // 新安装：按浏览器语言定下界面语言（之后在向导或设置里可以改）
+    await chrome.storage.local.set({ uiLang: tlDetectLang() });
+    chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
+  }
+  // 老用户升级：界面保持中文（很多外贸人的浏览器是英文的，不能因为“跟随浏览器”突然变成英文）
+  if (details && details.reason === 'update') {
+    const { uiLang } = await chrome.storage.local.get('uiLang');
+    if (!uiLang) await chrome.storage.local.set({ uiLang: 'zh' });
+  }
   setTimeout(() => checkUpdate(true), 3000);
   const st = await chrome.storage.local.get({ deepseekModel: '', outgoingEngine: '', wadlMigr03: false });
   const patch = {};
@@ -758,13 +776,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } else if (msg.type === 'deal') {
         sendResponse({ ok: true, card: await dealAnalyze(msg) });
       } else if (msg.type === 'testNotify') {
-        const ok = await notify('tl-test-' + Date.now(), 'TradeLingo 测试通知', '能看到这条通知，说明跟进提醒可以正常弹出。');
-        sendResponse(ok ? { ok: true } : { ok: false, error: '通知没有弹出：请检查系统通知设置是否允许 Chrome / Edge 发送通知' });
+        const ok = await notify('tl-test-' + Date.now(), tr('TradeLingo 测试通知'), tr('能看到这条通知，说明跟进提醒可以正常弹出。'));
+        sendResponse(ok ? { ok: true } : { ok: false, error: tr('通知没有弹出：请检查系统通知设置是否允许 Chrome / Edge 发送通知') });
       } else if (msg.type === 'checkNow') {
         const list = await checkReminders(true);
         sendResponse({ ok: true, count: list.length });
       } else if (msg.type === 'openDeals') {
         await chrome.tabs.create({ url: chrome.runtime.getURL('deals.html') });
+        sendResponse({ ok: true });
+      } else if (msg.type === 'openOptions') {
+        await chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1' + (msg.hash ? '#' + String(msg.hash).replace(/[^a-z]/g, '') : '')) });
         sendResponse({ ok: true });
       } else if (msg.type === 'checkUpdate') {
         sendResponse({ ok: true, info: await checkUpdate(true) });
@@ -773,7 +794,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         await chrome.storage.local.remove('wadlCache');
         sendResponse({ ok: true });
       } else {
-        sendResponse({ ok: false, error: '未知请求' });
+        sendResponse({ ok: false, error: tr('未知请求') });
       }
     } catch (e) {
       sendResponse({ ok: false, error: e.message || String(e) });

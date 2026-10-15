@@ -1,5 +1,5 @@
 // TradeLingo — 后台 service worker：调用 DeepL / Qwen-MT / DeepSeek（避开网页 CORS 限制）+ 翻译缓存 + 自动备用引擎
-importScripts('i18n.js', 'common.js', 'dealcore.js');
+importScripts('i18n.js', 'common.js', 'dealcore.js', 'notion.js');
 
 const CACHE_MAX = 3000;
 const DEEPSEEK_BASE = 'https://api.deepseek.com';
@@ -733,7 +733,72 @@ async function checkUpdate(force) {
   return info;
 }
 
-chrome.alarms.onAlarm.addListener((a) => { if (a.name === TL_ALARM) { checkReminders(); checkUpdate(); } });
+// ---------- Notion 同步（单向：作战卡 → Notion） ----------
+let notionRunning = false;
+let notionAgain = false;
+let notionTimer = null;
+
+async function notionSync(force) {
+  if (notionRunning) { notionAgain = true; return null; }
+  const s = await getSettings();
+  const st = await chrome.storage.local.get({ wadlNotion: null, wadlNotionSync: { map: {} }, wadlDeals: {} });
+  const cfg = st.wadlNotion;
+  const token = (s.notionToken || '').trim();
+  if (!cfg || !cfg.db || !token) return null;
+  if (!force && !s.notionAuto) return null;
+  notionRunning = true;
+  const state = { map: {}, ...st.wadlNotionSync };
+  state.map = state.map || {};
+  let done = 0;
+  let failed = 0;
+  let lastErr = '';
+  let skipped = [];
+  try {
+    const { cols, url } = await notionColumns(token, cfg.db);
+    if (url && url !== cfg.url) await chrome.storage.local.set({ wadlNotion: { ...cfg, url } });
+    if (cols[cfg.names.title] !== 'title') throw new Error(tr('找不到“{x}”列：请不要删除或改名客户名称列', { x: cfg.names.title }));
+    for (const [key, rec] of Object.entries(st.wadlDeals || {})) {
+      if (!rec || !rec.card) continue;
+      const known = state.map[key];
+      const hash = notionHash(key, rec, cfg);
+      if (!force && known && known.hash === hash && known.db === cfg.db) continue;
+      try {
+        const r = await notionUpsert(token, cfg, cols, key, rec, known && known.db === cfg.db ? known : null);
+        state.map[key] = { page: r.page, url: r.url, hash, db: cfg.db, at: Date.now() };
+        skipped = r.skipped;
+        done++;
+      } catch (e) {
+        failed++;
+        lastErr = e.message;
+        if (e.status === 401 || e.status === 403) break;
+      }
+      await chrome.storage.local.set({ wadlNotionSync: state });
+      await sleep(350); // Notion 接口每秒最多约 3 次请求
+    }
+    state.lastAt = Date.now();
+    state.error = failed ? lastErr : '';
+    state.lastCount = done;
+    state.skipped = skipped;
+  } catch (e) {
+    state.lastAt = Date.now();
+    state.error = e.message;
+    state.lastCount = done;
+  } finally {
+    await chrome.storage.local.set({ wadlNotionSync: state });
+    notionRunning = false;
+  }
+  if (notionAgain) { notionAgain = false; setTimeout(() => notionSync(false), 1000); }
+  return { done, failed, error: state.error, total: Object.keys(st.wadlDeals || {}).length };
+}
+
+// 作战卡变化后几秒内自动同步（合并短时间内的多次修改）
+chrome.storage.onChanged.addListener((ch, area) => {
+  if (area !== 'local' || !ch.wadlDeals) return;
+  clearTimeout(notionTimer);
+  notionTimer = setTimeout(() => notionSync(false), 6000);
+});
+
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === TL_ALARM) { checkReminders(); checkUpdate(); notionSync(false); } });
 chrome.notifications.onClicked.addListener((id) => {
   chrome.notifications.clear(id);
   if (id.startsWith('upd-')) chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1#update') });
@@ -786,6 +851,41 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true });
       } else if (msg.type === 'openOptions') {
         await chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1' + (msg.hash ? '#' + String(msg.hash).replace(/[^a-z]/g, '') : '')) });
+        sendResponse({ ok: true });
+      } else if (msg.type === 'notionList') {
+        await getSettings();
+        sendResponse({ ok: true, ...(await notionList(String(msg.token || '').trim())) });
+      } else if (msg.type === 'notionCreateDb') {
+        const s = await getSettings();
+        const token = (s.notionToken || '').trim();
+        const cfg = await notionCreateDb(token, msg.pageId, TL_LANG);
+        await chrome.storage.local.set({ wadlNotion: { ...cfg, db: cfg.id, page: msg.pageId, title: tr('TradeLingo 商机') }, wadlNotionSync: { map: {} } });
+        sendResponse({ ok: true, url: cfg.url, result: await notionSync(true) });
+      } else if (msg.type === 'notionUseDb') {
+        const s = await getSettings();
+        const token = (s.notionToken || '').trim();
+        const { cols, url, title } = await notionColumns(token, msg.dbId);
+        if (cols['TradeLingo ID'] !== 'rich_text') throw new Error(tr('这个数据库不是 TradeLingo 创建的（缺少“TradeLingo ID”列）。请让插件新建一个。'));
+        // 按列名和类型还原对照表：中文或英文列名都能认
+        const names = {};
+        let lang = 'zh';
+        for (const [key, zh, type] of NOTION_COLS) {
+          const en = key === 'tlid' ? 'TradeLingo ID' : TL_EN[zh];
+          if (cols[zh] === type) names[key] = zh;
+          else if (en && cols[en] === type) { names[key] = en; lang = 'en'; }
+          else names[key] = zh;
+        }
+        const old = (await chrome.storage.local.get({ wadlNotionSync: { map: {} } })).wadlNotionSync;
+        await chrome.storage.local.set({ wadlNotion: { db: msg.dbId, url, names, lang, title } });
+        if (old && old.map) for (const k of Object.keys(old.map)) if (old.map[k].db !== msg.dbId) delete old.map[k];
+        await chrome.storage.local.set({ wadlNotionSync: old || { map: {} } });
+        sendResponse({ ok: true, url, result: await notionSync(true) });
+      } else if (msg.type === 'notionSyncNow') {
+        await getSettings();
+        const r = await notionSync(true);
+        sendResponse(r ? { ok: true, ...r } : { ok: false, error: tr('正在同步中，请稍候') });
+      } else if (msg.type === 'notionDisconnect') {
+        await chrome.storage.local.remove(['wadlNotion', 'wadlNotionSync']);
         sendResponse({ ok: true });
       } else if (msg.type === 'checkUpdate') {
         sendResponse({ ok: true, info: await checkUpdate(true) });

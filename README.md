@@ -24,6 +24,7 @@ Read every customer message in your own language, write replies in your language
 - **Today's follow-up.** All battle cards ranked by estimated value × heat × urgency (overdue promises, customers waiting for your reply, silent customers), computed locally with no API cost. Export to Excel (CSV).
 - **Follow-up reminders.** Desktop notifications when your promise or next step is due, or a customer has waited too long for your reply, plus a daily morning digest of who to follow up today. Checked every 15 minutes in the background, even when WhatsApp is closed; unread counts in the WhatsApp chat list are taken into account, so you are reminded even if you never opened the chat. No API cost.
 - **Backup and restore.** Export battle cards, phrases, glossary, per-chat languages and settings to a JSON file (API keys optional) and import them on another computer or browser. Imports merge with existing data.
+- **Notion sync.** Deal cards can be written to a Notion database automatically (one way), so you can see follow-ups on your phone and share them with your team. Only deal-card fields are sent, never chat text or phone numbers.
 - **WhatsApp change alert.** If WhatsApp Web changes and TradeLingo can no longer find messages or the message box, it tells you instead of silently failing, checks for an update and helps you report it.
 - **Setup wizard and update alerts.** A wizard opens after installing and walks you through getting and testing a key. About once a day TradeLingo checks GitHub for a new version and shows a badge on its icon when one is available. Settings show how many characters each engine used this month.
 - **More than 30 target languages**, including Bengali, Kazakh, Uzbek, Hindi, Urdu, Persian, Vietnamese, Thai, Malay and Filipino through the AI engines.
@@ -108,6 +109,7 @@ extension/        Chrome extension (Manifest V3) — load this folder
   options.html/js Settings page
   welcome.html/js First-run setup wizard
   common.js       Shared defaults and language list
+  notion.js       Notion sync (deal cards → Notion database)
   i18n.js         Interface language (Chinese / English) and the English dictionary
   icons/
 docs/             Screenshots, logo, illustrated manual

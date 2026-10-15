@@ -1,5 +1,12 @@
 # Changelog / 更新记录
 
+## 0.10.0
+- New: **Notion sync** (one way, TradeLingo → Notion). Paste a Notion internal-connection token, pick a page shared with the connection, and TradeLingo creates a "TradeLingo deals" database (23 columns: customer, heat, stage, estimated value, next step and due date, our promises and the earliest due date, reply status, last messages, priority, needs, terms, blockers, price history, missing info, summary…). Deal cards are written a few seconds after they change; unchanged cards aren't re-sent. Manual "sync everything", disconnect, and reconnecting an existing TradeLingo database.
+- Columns you add in Notion are never touched; columns you delete or rename are skipped and reported. Pages deleted in Notion are recreated. Chat text and phone numbers are never sent.
+- `api.notion.com` is an optional permission, requested only when you connect Notion. The token is stored locally and excluded from backups unless you include keys.
+- Today's follow-up links to each customer's Notion page.
+- 新增：**Notion 同步**（单向，作战卡 → Notion）。粘贴 Notion 连接密钥、选择授权给连接的页面，插件自动创建“TradeLingo 商机”数据库（23 列），作战卡变化后几秒内写入；内容没变不重复发送。你在 Notion 里加的列不会被改动，删掉或改名的列自动跳过并提示，在 Notion 里删掉的页面会重新创建。不发送聊天原文和电话号码。只在连接 Notion 时申请访问 api.notion.com 的权限。今日跟进页可一键打开 Notion 页面。
+
 ## 0.9.0
 - New: **English interface.** Settings → 界面语言 / Language: Auto (browser language), 中文 or English. Covers the toolbar, deal card, Today's follow-up, settings, setup wizard, notifications and error messages. Existing users stay on Chinese after updating; new installs follow the browser language, and the wizard has a language switch.
 - In English mode, deal-card text written by DeepSeek is in English (internal values such as heat and "us/customer" are unchanged, so reminders and ranking work the same). Your own language is taken from "Translate incoming messages into", so back-translation and drafts work for non-Chinese users too. English sample quick phrases for new English users.

@@ -34,7 +34,7 @@
   for (const [v, label] of WADL_DS_MODELS) $('deepseekModel').add(new Option(tr(label), v));
   for (const [v, label] of WADL_QWEN_MODELS) $('qwenModel').add(new Option(tr(label), v));
 
-  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled', 'updateCheck'];
+  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled', 'updateCheck', 'notionAuto'];
   const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality', 'notifyWaitHours', 'digestHour', 'uiLang'];
 
   const STATUS_IDS = { deepl: 'statusDeepl', qwen: 'statusQwen', deepseek: 'statusDeepseek' };
@@ -121,7 +121,7 @@
   });
 
   // ---------- 备份与恢复 ----------
-  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey'];
+  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey', 'notionToken'];
   $('exportBackup').addEventListener('click', async () => {
     const all = await chrome.storage.local.get(null);
     const settings = {};
@@ -194,6 +194,99 @@
     showUpdate(r.info); updateStatus(r.info);
   });
   if (location.hash === '#update') setTimeout(() => { $('updHow').open = true; }, 100);
+
+  // ---------- Notion 同步 ----------
+  const NOTION_ORIGIN = 'https://api.notion.com/*';
+  const fmtTime = (t) => new Date(t).toLocaleString(TL_LANG === 'en' ? 'en-GB' : 'zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  function askNotionPermission() {
+    return new Promise((resolve) => {
+      try {
+        if (!chrome.permissions) return resolve(true);
+        chrome.permissions.request({ origins: [NOTION_ORIGIN] }, (ok) => resolve(!!ok && !chrome.runtime.lastError));
+      } catch (e) { resolve(false); }
+    });
+  }
+  function showNotionStatus(sync) {
+    if (!sync || !sync.lastAt) return;
+    const n = Object.keys(sync.map || {}).length;
+    if (sync.error) setStatus('statusNotion', tr('✗ {e}（{t}）', { e: sync.error, t: fmtTime(sync.lastAt) }), false);
+    else setStatus('statusNotion', tr('✓ 上次同步 {t}：Notion 里共有 {n} 个客户', { t: fmtTime(sync.lastAt), n }) + (sync.skipped && sync.skipped.length ? tr('；已跳过被删除或改名的列：{x}', { x: sync.skipped.join(tr('、')) }) : ''), true);
+  }
+  async function renderNotion() {
+    const st = await chrome.storage.local.get({ wadlNotion: null, wadlNotionSync: null, notionToken: '' });
+    const cfg = st.wadlNotion;
+    $('nConnected').hidden = !cfg;
+    $('nSetup').hidden = !!cfg;
+    $('notionToken').value = st.notionToken || '';
+    if (cfg) {
+      const a = document.createElement('a');
+      a.href = cfg.url || 'https://www.notion.so/';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = tr('已连接：{x} ↗', { x: cfg.title || tr('TradeLingo 商机') });
+      $('nDbLink').textContent = '';
+      $('nDbLink').append(a);
+      showNotionStatus(st.wadlNotionSync);
+    }
+  }
+  $('nConnect').addEventListener('click', async () => {
+    // 弹出窗口里请求权限时窗口可能被关闭，所以在完整设置页里进行
+    const token = $('notionToken').value.trim();
+    if (!document.body.classList.contains('page')) {
+      if (token) await chrome.storage.local.set({ notionToken: token });
+      chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1#notion') });
+      return;
+    }
+    if (!token) { setStatus('statusNotion', tr('请先粘贴 Notion 连接密钥'), false); return; }
+    if (!(await askNotionPermission())) { setStatus('statusNotion', tr('✗ 需要允许插件访问 api.notion.com 才能同步'), false); return; }
+    await chrome.storage.local.set({ notionToken: token });
+    setStatus('statusNotion', tr('正在连接 Notion…'));
+    const r = await send({ type: 'notionList', token });
+    if (!r.ok) { setStatus('statusNotion', '✗ ' + r.error, false); return; }
+    $('nPage').textContent = '';
+    for (const p of r.pages) $('nPage').add(new Option(p.title, p.id));
+    $('nDb').textContent = '';
+    const ours = r.dbs.filter((d) => d.ours);
+    for (const d of ours) $('nDb').add(new Option(d.title, d.id));
+    $('nUseRow').hidden = !ours.length;
+    $('nPick').hidden = false;
+    $('nCreate').disabled = !r.pages.length;
+    if (!r.pages.length && !ours.length) setStatus('statusNotion', tr('✓ 密钥有效，但这个连接还看不到任何页面：请在 Notion 连接设置的“内容访问权限”里添加一个页面，然后再点一次“连接 Notion”'), false);
+    else setStatus('statusNotion', tr('✓ 已连接。选择一个页面，点“创建数据库”'), true);
+  });
+  const afterSetup = async (r) => {
+    if (!r.ok) { setStatus('statusNotion', '✗ ' + r.error, false); return; }
+    await renderNotion();
+    const x = r.result;
+    if (x && x.error) setStatus('statusNotion', '✗ ' + x.error, false);
+    else setStatus('statusNotion', tr('✓ 数据库已就绪，已同步 {n} 个客户', { n: x ? x.done : 0 }), true);
+  };
+  $('nCreate').addEventListener('click', async () => {
+    if (!$('nPage').value) return;
+    setStatus('statusNotion', tr('正在创建数据库并同步…'));
+    afterSetup(await send({ type: 'notionCreateDb', pageId: $('nPage').value }));
+  });
+  $('nUse').addEventListener('click', async () => {
+    setStatus('statusNotion', tr('正在检查数据库并同步…'));
+    afterSetup(await send({ type: 'notionUseDb', dbId: $('nDb').value }));
+  });
+  $('nSync').addEventListener('click', async () => {
+    if (!(await askNotionPermission())) { setStatus('statusNotion', tr('✗ 需要允许插件访问 api.notion.com 才能同步'), false); return; }
+    setStatus('statusNotion', tr('正在同步…'));
+    const r = await send({ type: 'notionSyncNow' });
+    if (!r.ok) setStatus('statusNotion', '✗ ' + r.error, false);
+    else if (r.error) setStatus('statusNotion', tr('✗ 同步了 {d} 个，{f} 个失败：{e}', { d: r.done, f: r.failed, e: r.error }), false);
+    else setStatus('statusNotion', tr('✓ 已同步 {d} 个客户', { d: r.done }), true);
+  });
+  $('nDisconnect').addEventListener('click', async () => {
+    if (!window.confirm(tr('断开后插件不再写入 Notion；Notion 里已有的数据不会删除。确定吗？'))) return;
+    await send({ type: 'notionDisconnect' });
+    renderNotion();
+    setStatus('statusNotion', tr('已断开。Notion 里的数据仍然保留。'));
+  });
+  renderNotion();
+  chrome.storage.onChanged.addListener((ch, area) => { if (area === 'local' && ch.wadlNotionSync) showNotionStatus(ch.wadlNotionSync.newValue); });
+  if (location.hash === '#notion') setTimeout(() => $('notion').scrollIntoView(), 100);
 
   // ---------- 使用向导 ----------
   const openWelcome = () => chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });

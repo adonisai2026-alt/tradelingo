@@ -148,6 +148,34 @@
     <p class="hint">在 WhatsApp 工具条上点“单”，DeepSeek 会把当前聊天整理成作战卡：热度、阶段、预估金额、卡点、承诺和报价记录、下一步，并能一键起草消息。商机功能只使用 DeepSeek，翻译设置不受影响。</p>
   </div>
 
+  <div class="card" id="notion">
+    <div class="title">Notion 同步 <span class="badge b-deepl">Notion</span></div>
+    <div id="nConnected" hidden>
+      <div class="key-row"><span>✓ <span id="nDbLink"></span></span></div>
+      <label class="check"><input type="checkbox" id="notionAuto"> 自动同步：作战卡有变化后几秒内写入 Notion</label>
+      <div class="key-row"><button id="nSync">立即全部同步</button><button id="nDisconnect" class="secondary">断开</button></div>
+      <p class="hint" data-t="opt.notion.calendar">想在 Notion 里按日期看跟进：打开数据库，点 <b>+ 添加视图</b> → <b>日历</b>，按“下一步截止”或“承诺截止”显示。手机上的 Notion App 也能看到。</p>
+    </div>
+    <div id="nSetup">
+      <div class="key-row">
+        <input id="notionToken" type="password" placeholder="粘贴 Notion 连接密钥（ntn_…）" autocomplete="off">
+        <button class="secondary toggle" data-for="notionToken" title="显示/隐藏">👁</button>
+        <button id="nConnect">连接 Notion</button>
+      </div>
+      <div id="nPick" hidden>
+        <div class="sub">在哪个页面下新建数据库</div>
+        <div class="key-row"><select id="nPage" style="flex:1;max-width:none"></select><button id="nCreate">创建数据库</button></div>
+        <div id="nUseRow" hidden>
+          <div class="sub">或者继续用已有的 TradeLingo 数据库</div>
+          <div class="key-row"><select id="nDb" style="flex:1;max-width:none"></select><button id="nUse" class="secondary">使用这个</button></div>
+        </div>
+      </div>
+      <p class="hint" data-t="opt.notion.howto">准备工作：在 <b>notion.so/profile/integrations</b>（开发者工具 → 连接）新建一个内部连接，勾选读取、更新、插入内容；在 Notion 里新建一个空白页面，并在连接的“内容访问权限”里添加这个页面；然后把连接的 API 令牌粘贴到上面。</p>
+    </div>
+    <div id="statusNotion" class="status"></div>
+    <p class="hint">只同步作战卡（客户、热度、阶段、金额、下一步、承诺、报价等），不发送聊天原文和电话号码。数据从浏览器直接发到 Notion，你在 Notion 里自己加的列不会被改动。</p>
+  </div>
+
   <div class="card" id="remind">
     <div class="title">跟进提醒</div>
     <label class="check"><input type="checkbox" id="notifyEnabled"> 桌面提醒：我方承诺或下一步到期、客户等你回复</label>

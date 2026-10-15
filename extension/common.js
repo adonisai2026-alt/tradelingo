@@ -24,6 +24,8 @@ var WADL_DEFAULTS = {
   digestHour: 9,                 // 早报时间（几点之后第一次检查时发送）
   updateCheck: true,             // 每天检查一次 GitHub 上有没有新版本
   uiLang: 'auto',                // 界面语言：auto（跟随浏览器）/ zh / en
+  notionToken: '',               // Notion 内部连接密钥（ntn_…）
+  notionAuto: true,              // 作战卡有变化时自动同步到 Notion
   // 快捷话术：每行 “关键词 | 中文内容”，在输入框输入 / 调出
   phrases: [
     '问候 | 您好！感谢您的咨询，请问有什么可以帮您？',

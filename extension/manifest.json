@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TradeLingo — Translator for WhatsApp Web",
   "short_name": "TradeLingo",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Translate WhatsApp Web chats with DeepL, Qwen-MT or DeepSeek. Not affiliated with WhatsApp or Meta.",
   "permissions": [
     "storage",
@@ -52,5 +52,8 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "optional_host_permissions": [
+    "https://api.notion.com/*"
+  ]
 }

@@ -60,6 +60,31 @@ function tlApplyI18n(root) {
 
 // ---------- 英文词典（键为中文原文） ----------
 var TL_EN = {
+  // Notion 同步
+  'Notion 同步': 'Notion sync', 'Notion 响应超时': 'Notion timed out', 'Notion 密钥无效，请重新复制': 'Invalid Notion key, please copy it again',
+  'Notion 拒绝了数据：{x}': 'Notion rejected the data: {x}', 'Notion 请求过于频繁，请稍后再试': 'Too many Notion requests, please try again shortly', 'Notion 返回错误 {s}': 'Notion error {s}',
+  'TradeLingo 商机': 'TradeLingo deals', '✓ 上次同步 {t}：Notion 里共有 {n} 个客户': '✓ Last sync {t}: {n} customers in Notion',
+  '✓ 密钥有效，但这个连接还看不到任何页面：请在 Notion 连接设置的“内容访问权限”里添加一个页面，然后再点一次“连接 Notion”': '✓ The key works, but this connection can\'t see any pages yet. Add a page under "Content access" in the Notion connection settings, then click "Connect Notion" again.',
+  '✓ 已同步 {d} 个客户': '✓ Synced {d} customers', '✓ 已连接。选择一个页面，点“创建数据库”': '✓ Connected. Choose a page and click "Create database".',
+  '✓ 数据库已就绪，已同步 {n} 个客户': '✓ Database ready; synced {n} customers', '✗ 同步了 {d} 个，{f} 个失败：{e}': '✗ Synced {d}, {f} failed: {e}',
+  '✗ 需要允许插件访问 api.notion.com 才能同步': '✗ The extension needs permission to access api.notion.com to sync', '✗ {e}（{t}）': '✗ {e} ({t})',
+  '使用这个': 'Use this one', '创建数据库': 'Create database',
+  '只同步作战卡（客户、热度、阶段、金额、下一步、承诺、报价等），不发送聊天原文和电话号码。数据从浏览器直接发到 Notion，你在 Notion 里自己加的列不会被改动。': 'Only deal cards are synced (customer, heat, stage, value, next step, promises, quotes and so on), never chat text or phone numbers. Data goes straight from your browser to Notion, and columns you add yourself in Notion are left alone.',
+  '在 Notion 中打开': 'Open in Notion', '在哪个页面下新建数据库': 'Create the database under this page', '已断开。Notion 里的数据仍然保留。': 'Disconnected. Your data in Notion is kept.',
+  '已连接：{x} ↗': 'Connected: {x} ↗', '或者继续用已有的 TradeLingo 数据库': 'Or keep using an existing TradeLingo database',
+  '找不到“{x}”列：请不要删除或改名客户名称列': 'Column "{x}" not found. Please don\'t delete or rename the customer name column.',
+  '找不到页面或数据库：请确认已在 Notion 里把它授权给 Tradelingo 连接': 'Page or database not found. Make sure it is shared with the Tradelingo connection in Notion.',
+  '断开': 'Disconnect', '断开后插件不再写入 Notion；Notion 里已有的数据不会删除。确定吗？': 'After disconnecting, the extension stops writing to Notion. Existing data in Notion is not deleted. Continue?',
+  '未命名数据库': 'Untitled database', '未命名页面': 'Untitled page', '正在创建数据库并同步…': 'Creating the database and syncing…', '正在同步…': 'Syncing…',
+  '正在同步中，请稍候': 'A sync is already running, please wait', '正在检查数据库并同步…': 'Checking the database and syncing…', '正在连接 Notion…': 'Connecting to Notion…',
+  '立即全部同步': 'Sync everything now', '粘贴 Notion 连接密钥（ntn_…）': 'Paste your Notion connection key (ntn_…)', '网络错误，无法连接 Notion': 'Network error: couldn\'t reach Notion',
+  '自动同步：作战卡有变化后几秒内写入 Notion': 'Sync automatically: write to Notion a few seconds after a deal card changes', '请先粘贴 Notion 连接密钥': 'Paste your Notion connection key first',
+  '还没有允许插件访问 Notion：请在设置页点“连接 Notion”并允许': 'The extension isn\'t allowed to access Notion yet. Click "Connect Notion" in settings and allow it.',
+  '这个数据库不是 TradeLingo 创建的（缺少“TradeLingo ID”列）。请让插件新建一个。': 'This database wasn\'t created by TradeLingo (no "TradeLingo ID" column). Let the extension create a new one.',
+  '这个连接没有权限：请在 Notion 连接设置的“内容访问权限”里添加页面，并勾选读取、更新、插入内容': 'This connection has no access. In the Notion connection settings, add the page under "Content access" and enable read, update and insert content.',
+  '连接 Notion': 'Connect Notion', '；已跳过被删除或改名的列：{x}': '; skipped deleted or renamed columns: {x}',
+  '公司': 'Company', '国家': 'Country', '客户类型': 'Customer type', '下一步截止': 'Next step due', '我方承诺': 'Our promises', '承诺截止': 'Promise due',
+  '客户最后消息': 'Last customer message', '我方最后回复': 'Our last reply', '优先级': 'Priority',
   // 标点
   '：': ': ', '、': ', ', '；': '; ', '（{x}）': ' ({x})', '（AI）': ' (AI)',
   // 通用
@@ -267,6 +292,8 @@ var TL_EN = {
 };
 
 var TL_EN_HTML = {
+  'opt.notion.calendar': 'To see follow-ups by date in Notion, open the database and click <b>+ Add view</b> → <b>Calendar</b>, showing by "Next step due" or "Promise due". It also works in the Notion mobile app.',
+  'opt.notion.howto': 'Before you start: at <b>notion.so/profile/integrations</b> (Developer tools → Connections) create an internal connection with read, update and insert content; create an empty page in Notion and add it under the connection\'s "Content access"; then paste the connection\'s API token above.',
   'opt.upd.step2': 'Copy everything inside the unzipped <b>extension</b> folder into the folder you originally installed from, replacing the old files.<br><span class="hint">Always overwrite the original folder. A new folder starts with empty settings.</span>',
   'opt.upd.step3': 'Open <b>chrome://extensions</b> (Edge: edge://extensions) and click <b>⟳ Reload</b> on the TradeLingo card.',
   'opt.phrases.hint': 'Type <b>/</b> plus a keyword (such as <b>/quote</b>) in the WhatsApp message box and press Enter; the phrase is translated into the current customer\'s language and put in the message box. Format: one "keyword | text" per line; \\n inside the text means a line break. Replace the sample lead times, payment terms and certificates with your company\'s own.'

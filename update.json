@@ -1,13 +1,13 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "date": "2026-10-16",
   "notes": [
-    "新增：英文界面（设置里可选 中文 / English / 跟随浏览器）",
-    "新增：WhatsApp 网页改版预警，识别不到消息或输入框时明确提示，并可一键检查更新、复制诊断信息"
+    "新增：Notion 同步，作战卡自动写入你的 Notion 数据库，手机上也能看跟进",
+    "今日跟进页可一键打开对应的 Notion 页面"
   ],
   "notes_en": [
-    "New: English interface (choose 中文 / English / Auto in settings)",
-    "New: an alert when WhatsApp Web changes and messages or the message box can't be found, with one-click update check and diagnostics"
+    "New: Notion sync. Deal cards are written to your Notion database automatically, so you can see follow-ups on your phone",
+    "Today's follow-up links to each customer's Notion page"
   ],
   "download": "https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip",
   "changelog": "https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"

@@ -4,6 +4,7 @@
   tlSetUiLang((await chrome.storage.local.get({ uiLang: 'auto' })).uiLang);
   tlApplyI18n(document.body);
   let deals = {};
+  let notionMap = {};
   let stage = '全部';
   const STAGES = ['全部', '询盘', '报价', '样品', '谈判', '下单', '售后'];
 
@@ -81,6 +82,13 @@
         delete deals[key];
         chrome.storage.local.set({ wadlDeals: deals });
       });
+      const np = notionMap[key];
+      if (np && np.url) {
+        const a = el('a', 'nlink', 'Notion ↗');
+        a.href = np.url; a.target = '_blank'; a.rel = 'noopener';
+        a.title = tr('在 Notion 中打开');
+        ops.append(a);
+      }
       ops.append(copyBtn, del);
       li.append(ops);
       list.append(li);
@@ -97,9 +105,12 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
 
-  chrome.storage.local.get({ wadlDeals: {} }).then((r) => { deals = r.wadlDeals || {}; render(); });
+  chrome.storage.local.get({ wadlDeals: {}, wadlNotionSync: null }).then((r) => { deals = r.wadlDeals || {}; notionMap = (r.wadlNotionSync && r.wadlNotionSync.map) || {}; render(); });
   chrome.storage.onChanged.addListener((ch, area) => {
-    if (area === 'local' && ch.wadlDeals) { deals = ch.wadlDeals.newValue || {}; render(); }
+    if (area !== 'local') return;
+    if (ch.wadlDeals) deals = ch.wadlDeals.newValue || {};
+    if (ch.wadlNotionSync) notionMap = (ch.wadlNotionSync.newValue && ch.wadlNotionSync.newValue.map) || {};
+    if (ch.wadlDeals || ch.wadlNotionSync) render();
   });
   setInterval(render, 60000); // 往来时间每分钟刷新
 })();

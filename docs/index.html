@@ -48,7 +48,7 @@
   "alternateName": "TradeLingo — Translator for WhatsApp Web",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Google Chrome, Microsoft Edge (desktop)",
-  "softwareVersion": "0.9.0",
+  "softwareVersion": "0.10.0",
   "license": "https://opensource.org/licenses/MIT",
   "isAccessibleForFree": true,
   "url": "https://tradelingo.cn/",
@@ -106,7 +106,7 @@
         <ul class="facts">
           <li><span data-lang="zh">免费，MIT 开源</span><span data-lang="en">Free, MIT licence</span></li>
           <li><span data-lang="zh">支持 Chrome 和 Edge 电脑版</span><span data-lang="en">Chrome and Edge on desktop</span></li>
-          <li><span data-lang="zh">当前版本 v0.9.0</span><span data-lang="en">Version 0.9.0</span></li>
+          <li><span data-lang="zh">当前版本 v0.10.0</span><span data-lang="en">Version 0.10.0</span></li>
         </ul>
         <p class="notice">
           <span data-lang="zh">暂未上架 Chrome 应用商店，需要手动加载，按<a href="install.html">安装教程</a>做大约 5 分钟。TradeLingo 是独立开源项目，不是 WhatsApp 或 Meta 的官方产品。</span>
@@ -470,6 +470,10 @@
             <span><span data-lang="zh">今日跟进、桌面提醒和每日早报都在你的电脑上计算，不发送到任何地方。客户语言识别用的也是 Chrome 自带的本地功能。</span><span data-lang="en">Today's follow-up, reminders and the digest are computed on your computer and sent nowhere. Language detection uses Chrome's on-device detector.</span></span>
           </li>
           <li>
+            <strong><span data-lang="zh">Notion 同步由你决定</span><span data-lang="en">Notion sync is opt-in</span></strong>
+            <span><span data-lang="zh">只有你连接了 Notion，才会把作战卡字段写入你自己的 Notion 数据库；聊天原文和电话号码不会发送。</span><span data-lang="en">Only if you connect Notion are deal-card fields written to your own Notion database; chat text and phone numbers are never sent.</span></span>
+          </li>
+          <li>
             <strong><span data-lang="zh">检查更新只读版本号</span><span data-lang="en">Update checks only read a version number</span></strong>
             <span><span data-lang="zh">每天一次从 GitHub（打不开时用 jsDelivr 镜像）下载公开的版本号文件，不发送你的任何数据，可以在设置里关闭。</span><span data-lang="en">Once a day the extension downloads a public version file from GitHub (or the jsDelivr mirror). None of your data is sent, and you can turn it off in settings.</span></span>
           </li>
@@ -530,6 +534,12 @@
         <summary><span data-lang="zh">插件界面有英文吗？</span><span data-lang="en">Is the extension's interface available in English?</span></summary>
         <div class="ans">
           <p><span data-lang="zh">有。从 v0.9.0 起，插件支持中文和英文界面：在设置页“界面语言 / Language”里选择。新安装时默认跟随浏览器语言，老用户升级后保持中文。欢迎在 GitHub 上贡献其他语言的界面翻译。</span><span data-lang="en">Yes. From v0.9.0 the interface is available in English and Chinese: choose it under 界面语言 / Language in settings. New installs follow your browser language. Contributions for other languages are welcome on GitHub.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">能同步到 Notion 吗？</span><span data-lang="en">Can it sync to Notion?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">可以。从 v0.10.0 起，在设置页“Notion 同步”里粘贴 Notion 连接密钥、选择一个页面，插件会自动建好客户数据库，之后作战卡有变化就自动写入。手机上的 Notion App 也能看跟进。目前是单向同步：在 Notion 里改的内容不会回写到插件。</span><span data-lang="en">Yes. From v0.10.0, paste a Notion connection key under Notion sync in settings and pick a page; the extension creates a customer database and writes deal cards to it whenever they change. You can see follow-ups in the Notion mobile app too. Sync is one way for now: edits in Notion don't flow back to the extension.</span></p>
         </div>
       </details>
       <details>

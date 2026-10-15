@@ -158,7 +158,7 @@ function tlCSV(rows) {
 
 // 备份导入：与现有数据合并
 function tlMergeBackup(cur, b) {
-  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey'];
+  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey', 'notionToken'];
   const patch = {};
   let settings = 0;
   let keys = false;

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN"
+  data-title-en="Install TradeLingo — step-by-step guide for Chrome and Edge"
+  data-desc-en="How to install the TradeLingo WhatsApp Web translator in Chrome or Edge: download the ZIP, turn on Developer mode, load the extension folder and add an API key. Also covers updating and moving to another computer.">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var l = (q === 'en' || q === 'zh') ? q : localStorage.getItem('tl-lang');
+      if (l === 'en') document.documentElement.lang = 'en';
+    } catch (e) {}
+  })();
+</script>
+<title>TradeLingo 安装教程｜Chrome、Edge 手动加载插件图文步骤</title>
+<meta name="description" content="TradeLingo（WhatsApp 网页版翻译插件）安装教程：下载 ZIP、打开开发者模式、加载 extension 文件夹、填写 API Key。另含 Edge 安装、升级新版本、换电脑迁移数据的方法。">
+<meta name="keywords" content="TradeLingo 安装, WhatsApp 翻译插件安装, Chrome 加载已解压的扩展程序, Edge 加载解压缩的扩展, 开发者模式安装插件">
+<meta name="theme-color" content="#00866a">
+<link rel="canonical" href="https://adonisai2026-alt.github.io/tradelingo/install.html">
+<link rel="alternate" hreflang="zh-CN" href="https://adonisai2026-alt.github.io/tradelingo/install.html">
+<link rel="alternate" hreflang="en" href="https://adonisai2026-alt.github.io/tradelingo/install.html?lang=en">
+<link rel="icon" type="image/png" sizes="32x32" href="site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="site/icon-192.png">
+<link rel="apple-touch-icon" href="site/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TradeLingo">
+<meta property="og:url" content="https://adonisai2026-alt.github.io/tradelingo/install.html">
+<meta property="og:title" content="TradeLingo 安装教程｜Chrome、Edge 手动加载插件图文步骤">
+<meta property="og:description" content="下载 ZIP → 打开开发者模式 → 加载 extension 文件夹 → 填 API Key，大约 5 分钟。">
+<meta property="og:image" content="https://adonisai2026-alt.github.io/tradelingo/site/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="site/style.css">
+</head>
+<body>
+<a class="skip" href="#main"><span data-lang="zh">跳到正文</span><span data-lang="en">Skip to content</span></a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="site/icon-192.png" alt="" width="30" height="30">TradeLingo</a>
+    <nav class="nav" aria-label="页面导航">
+      <a href="./#features"><span data-lang="zh">功能</span><span data-lang="en">Features</span></a>
+      <a href="#chrome"><span data-lang="zh">安装</span><span data-lang="en">Install</span></a>
+      <a href="#edge">Edge</a>
+      <a href="#update"><span data-lang="zh">升级</span><span data-lang="en">Update</span></a>
+      <a href="#trouble"><span data-lang="zh">装不上</span><span data-lang="en">Problems</span></a>
+    </nav>
+    <div class="top-actions">
+      <button class="lang-toggle" type="button" aria-label="Switch to English"><span class="l-zh">中</span><span class="l-en">EN</span></button>
+      <a class="btn btn-primary btn-small" href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip"><span data-lang="zh">下载</span><span data-lang="en">Download</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="page-head">
+    <div class="wrap">
+      <h1><span data-lang="zh">安装教程</span><span data-lang="en">Install guide</span></h1>
+      <p><span data-lang="zh">TradeLingo 还没有上架 Chrome 应用商店，需要用浏览器自带的“开发者模式”手动加载。不用写代码，照着下面做，大约 5 分钟。</span><span data-lang="en">TradeLingo isn't on the Chrome Web Store yet, so you load it with the browser's built-in Developer mode. No coding, about 5 minutes.</span></p>
+      <ul class="prep">
+        <li><strong><span data-lang="zh">一台电脑</span><span data-lang="en">A computer</span></strong><span><span data-lang="zh">Windows 或 Mac，装有 Chrome 或 Edge。手机上不能用。</span><span data-lang="en">Windows or Mac with Chrome or Edge. It doesn't work on phones.</span></span></li>
+        <li><strong><span data-lang="zh">WhatsApp 网页版</span><span data-lang="en">WhatsApp Web</span></strong><span><span data-lang="zh">能在浏览器里打开 web.whatsapp.com 并登录。</span><span data-lang="en">You can open and sign in to web.whatsapp.com.</span></span></li>
+        <li><strong><span data-lang="zh">至少一个 API Key</span><span data-lang="en">At least one API key</span></strong><span><span data-lang="zh">DeepL、Qwen-MT 或 DeepSeek，<a href="./#engines">去哪申请</a>。</span><span data-lang="en">DeepL, Qwen-MT or DeepSeek. <a href="./#engines">Where to get one</a>.</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="guide" id="chrome">
+    <div class="wrap">
+
+      <section class="g-step">
+        <div class="g-num" aria-hidden="true">1</div>
+        <div class="g-body">
+          <h2><span data-lang="zh">下载并解压</span><span data-lang="en">Download and unzip</span></h2>
+          <ol>
+            <li><span data-lang="zh">点下面的按钮，下载得到 <code>tradelingo-main.zip</code>。</span><span data-lang="en">Click the button below to download <code>tradelingo-main.zip</code>.</span></li>
+            <li><span data-lang="zh">解压：Windows 右键压缩包，选“全部解压缩”；Mac 双击压缩包。</span><span data-lang="en">Unzip it: on Windows, right-click and choose Extract All; on Mac, double-click it.</span></li>
+            <li><span data-lang="zh">打开解压出来的 <code>tradelingo-main</code> 文件夹，里面的 <code>extension</code> 文件夹就是插件。</span><span data-lang="en">Open the <code>tradelingo-main</code> folder. The <code>extension</code> folder inside is the extension.</span></li>
+            <li><span data-lang="zh">把 <code>extension</code> 文件夹移到一个固定位置，例如 <code>D:\Tools\tradelingo</code>。</span><span data-lang="en">Move the <code>extension</code> folder somewhere permanent, for example <code>D:\Tools\tradelingo</code>.</span></li>
+          </ol>
+          <div class="mock" aria-hidden="true">
+            <div class="mock-folder">
+              📁 tradelingo-main<br>
+              &nbsp;&nbsp;&nbsp;📁 docs <span class="dim">— <span data-lang="zh">说明书和截图，不用管</span><span data-lang="en">manual and screenshots, ignore</span></span><br>
+              &nbsp;&nbsp;&nbsp;📁 <span class="pick">extension</span> <span class="dim">— <span data-lang="zh">要加载的就是它</span><span data-lang="en">this is the one to load</span></span><br>
+              &nbsp;&nbsp;&nbsp;📄 README.md<br>
+              &nbsp;&nbsp;&nbsp;📄 LICENSE
+            </div>
+          </div>
+          <p class="mock-label"><span data-lang="zh">示意图：解压后的文件夹</span><span data-lang="en">Illustration: the unzipped folder</span></p>
+          <div class="warn"><span data-lang="zh">不要放在“下载”文件夹或桌面上，以后也不要删除、移动或改名。浏览器每次启动都从这个文件夹读取插件，设置也跟这个文件夹绑定。</span><span data-lang="en">Don't leave it in Downloads or on the desktop, and don't delete, move or rename it later. The browser loads the extension from this folder every time, and your settings are tied to it.</span></div>
+          <a class="btn btn-primary" href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip"><span data-lang="zh">下载 ZIP</span><span data-lang="en">Download ZIP</span></a>
+        </div>
+      </section>
+
+      <section class="g-step">
+        <div class="g-num" aria-hidden="true">2</div>
+        <div class="g-body">
+          <h2><span data-lang="zh">打开扩展程序页面，开启开发者模式</span><span data-lang="en">Open the extensions page and turn on Developer mode</span></h2>
+          <ol>
+            <li>
+              <span data-lang="zh">在 Chrome 地址栏输入下面这行，按回车。网页上的链接打不开这个页面，请复制后粘贴到地址栏。</span><span data-lang="en">Type this into Chrome's address bar and press Enter. Links can't open this page, so copy and paste it.</span>
+              <div class="copyline"><code>chrome://extensions</code><button class="copy-btn" type="button" data-copy="chrome://extensions"><span data-lang="zh">复制</span><span data-lang="en">Copy</span></button></div>
+            </li>
+            <li><span data-lang="zh">打开页面右上角的“开发者模式”开关。</span><span data-lang="en">Turn on the Developer mode switch at the top right.</span></li>
+          </ol>
+          <div class="mock" aria-hidden="true">
+            <div class="mock-url"><span>chrome://extensions</span></div>
+            <div class="mock-bar">
+              <b><span data-lang="zh">扩展程序</span><span data-lang="en">Extensions</span></b>
+              <span class="mock-toggle hl"><span data-lang="zh">开发者模式</span><span data-lang="en">Developer mode</span><i class="switch on"></i></span>
+            </div>
+            <div class="mock-btns">
+              <span><span data-lang="zh">加载已解压的扩展程序</span><span data-lang="en">Load unpacked</span></span>
+              <span><span data-lang="zh">打包扩展程序</span><span data-lang="en">Pack extension</span></span>
+              <span><span data-lang="zh">更新</span><span data-lang="en">Update</span></span>
+            </div>
+          </div>
+          <p class="mock-label"><span data-lang="zh">示意图：开关在右上角，打开后左上方会多出一排按钮</span><span data-lang="en">Illustration: the switch is at the top right; a row of buttons appears once it's on</span></p>
+        </div>
+      </section>
+
+      <section class="g-step">
+        <div class="g-num" aria-hidden="true">3</div>
+        <div class="g-body">
+          <h2><span data-lang="zh">加载插件</span><span data-lang="en">Load the extension</span></h2>
+          <ol>
+            <li><span data-lang="zh">点左上方的“加载已解压的扩展程序”。</span><span data-lang="en">Click "Load unpacked" at the top left.</span></li>
+            <li><span data-lang="zh">在弹出的窗口里选中 <code>extension</code> 文件夹，点“选择文件夹”。选的是文件夹本身：点进去能看到 <code>manifest.json</code>，说明选对了。</span><span data-lang="en">In the window that opens, select the <code>extension</code> folder and click Select Folder. Pick the folder itself: if you can see <code>manifest.json</code> inside, it's the right one.</span></li>
+            <li><span data-lang="zh">页面上出现 TradeLingo 卡片，就装好了。</span><span data-lang="en">A TradeLingo card appears on the page. That's it.</span></li>
+            <li><span data-lang="zh">点浏览器右上角的拼图图标，在 TradeLingo 旁边点图钉，把它固定到工具栏，以后打开设置更方便。</span><span data-lang="en">Click the puzzle icon at the top right of the browser and pin TradeLingo to the toolbar so settings are one click away.</span></li>
+          </ol>
+          <div class="mock" aria-hidden="true">
+            <div class="mock-url"><span>chrome://extensions</span></div>
+            <div class="mock-btns">
+              <span class="hl"><span data-lang="zh">加载已解压的扩展程序</span><span data-lang="en">Load unpacked</span></span>
+              <span><span data-lang="zh">打包扩展程序</span><span data-lang="en">Pack extension</span></span>
+              <span><span data-lang="zh">更新</span><span data-lang="en">Update</span></span>
+            </div>
+            <div class="mock-card">
+              <img src="site/icon-192.png" alt="" width="36" height="36">
+              <div><b>TradeLingo — Translator for WhatsApp Web</b> 0.7.1<small>Translate WhatsApp Web chats with DeepL, Qwen-MT or DeepSeek.</small></div>
+            </div>
+          </div>
+          <p class="mock-label"><span data-lang="zh">示意图：加载成功后出现的插件卡片</span><span data-lang="en">Illustration: the extension card after loading</span></p>
+        </div>
+      </section>
+
+      <section class="g-step">
+        <div class="g-num" aria-hidden="true">4</div>
+        <div class="g-body">
+          <h2><span data-lang="zh">填写 API Key，刷新 WhatsApp</span><span data-lang="en">Add your API key and reload WhatsApp</span></h2>
+          <ol>
+            <li><span data-lang="zh">点工具栏上的 TradeLingo 图标，打开设置页。</span><span data-lang="en">Click the TradeLingo icon on the toolbar to open settings.</span></li>
+            <li><span data-lang="zh">在对应引擎的卡片里粘贴 Key，点“保存并测试”。看到绿色的“连接成功”就可以了。</span><span data-lang="en">Paste your key into the matching engine card and click 保存并测试 (Save &amp; test). A green 连接成功 (connected) means it works.</span></li>
+            <li><span data-lang="zh">刷新 WhatsApp 网页版（web.whatsapp.com）。安装或升级后都要刷新一次。</span><span data-lang="en">Reload WhatsApp Web (web.whatsapp.com). Do this after every install or update.</span></li>
+          </ol>
+          <figure style="margin:18px 0 0;max-width:420px">
+            <a class="zoom" href="screenshots/settings-qwen.webp"><img src="screenshots/settings-qwen.webp" width="736" height="518" loading="lazy"
+              data-alt-zh="设置页的 Qwen-MT 卡片：粘贴 Key、选择模型和地域，点“保存并测试”后显示连接成功"
+              data-alt-en="The Qwen-MT card in settings: paste the key, choose model and region, click Save & test, and it shows connected"
+              alt="设置页的 Qwen-MT 卡片：粘贴 Key、选择模型和地域，点“保存并测试”后显示连接成功"></a>
+            <figcaption><span data-lang="zh">真实截图。Qwen-MT 的地域要和创建 Key 时一致。</span><span data-lang="en">Real screenshot. For Qwen-MT, the region must match where you created the key.</span></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="g-step">
+        <div class="g-num" aria-hidden="true">5</div>
+        <div class="g-body">
+          <h2><span data-lang="zh">试一下</span><span data-lang="en">Try it</span></h2>
+          <ul>
+            <li><span data-lang="zh">打开一个外国客户的聊天，消息下方会出现绿色的中文译文。</span><span data-lang="en">Open a chat with a foreign customer: green Chinese translations appear under the messages.</span></li>
+            <li><span data-lang="zh">输入框右上方会出现工具条：引擎、语言、“译”和“话”按钮。</span><span data-lang="en">A toolbar appears above the message box: engine, language, and the 译 (translate) and 话 (phrases) buttons.</span></li>
+            <li><span data-lang="zh">想用跟进提醒：在设置页“跟进提醒”里点“发送测试通知”。没有弹出的话，在系统通知设置里允许 Chrome（或 Edge）发送通知。</span><span data-lang="en">For reminders, click 发送测试通知 (send test notification) in settings. If nothing pops up, allow Chrome (or Edge) to send notifications in your system settings.</span></li>
+          </ul>
+          <figure style="margin:18px 0 0;max-width:520px">
+            <a class="zoom" href="screenshots/toolbar.webp"><img src="screenshots/toolbar.webp" width="730" height="114" loading="lazy"
+              data-alt-zh="翻译工具条：Qwen 引擎、自动识别为阿拉伯语、“译”按钮和“话”按钮"
+              data-alt-en="The translation toolbar: Qwen engine, auto-detected Arabic, the 译 and 话 buttons"
+              alt="翻译工具条：Qwen 引擎、自动识别为阿拉伯语、“译”按钮和“话”按钮"></a>
+            <figcaption><span data-lang="zh">真实截图：装好后输入框上方的工具条。</span><span data-lang="en">Real screenshot: the toolbar above the message box.</span></figcaption>
+          </figure>
+          <p style="margin-top:18px"><span data-lang="zh">每个按钮的详细用法见<a href="manual.zh-CN.html">图文说明书</a>。</span><span data-lang="en">For every button in detail, see the <a href="manual.zh-CN.html">illustrated manual</a> (Chinese).</span></p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="block alt" id="edge">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2><span data-lang="zh">用 Edge 浏览器</span><span data-lang="en">Using Microsoft Edge</span></h2>
+        <p><span data-lang="zh">步骤和 Chrome 一样，只有第 2、3 步的位置和名字不同：</span><span data-lang="en">Same steps as Chrome; only steps 2 and 3 look different:</span></p>
+      </div>
+      <div class="g-body">
+        <ol>
+          <li>
+            <span data-lang="zh">在地址栏粘贴下面这行，按回车：</span><span data-lang="en">Paste this into the address bar and press Enter:</span>
+            <div class="copyline"><code>edge://extensions</code><button class="copy-btn" type="button" data-copy="edge://extensions"><span data-lang="zh">复制</span><span data-lang="en">Copy</span></button></div>
+          </li>
+          <li><span data-lang="zh">打开<strong>左侧</strong>的“开发人员模式”开关。</span><span data-lang="en">Turn on Developer mode in the <strong>left</strong> sidebar.</span></li>
+          <li><span data-lang="zh">点“加载解压缩的扩展”，选择 <code>extension</code> 文件夹。</span><span data-lang="en">Click "Load unpacked" and choose the <code>extension</code> folder.</span></li>
+        </ol>
+        <div class="tip"><span data-lang="zh">Chrome 和 Edge 的设置互不共享。两个浏览器都要用的话，可以在设置页用“备份与恢复”导出再导入。</span><span data-lang="en">Chrome and Edge don't share settings. To use both, export from Backup and restore in one and import in the other.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="update">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2><span data-lang="zh">升级到新版本</span><span data-lang="en">Updating to a new version</span></h2>
+        <p><span data-lang="zh">升级不会清除你填好的 Key、术语表、话术和客户语言记录，前提是覆盖同一个文件夹。</span><span data-lang="en">Updating keeps your keys, glossary, phrases and per-chat languages, as long as you overwrite the same folder.</span></p>
+      </div>
+      <div class="g-body">
+        <ol>
+          <li><span data-lang="zh">重新<a href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip">下载 ZIP</a> 并解压。</span><span data-lang="en"><a href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip">Download the ZIP</a> again and unzip it.</span></li>
+          <li><span data-lang="zh">把新 <code>extension</code> 文件夹里的所有文件，复制到你原来的插件文件夹里，选择“替换”。</span><span data-lang="en">Copy everything inside the new <code>extension</code> folder into your existing folder and choose Replace.</span></li>
+          <li><span data-lang="zh">打开 <code>chrome://extensions</code>，在 TradeLingo 卡片上点刷新按钮 ⟳。</span><span data-lang="en">Open <code>chrome://extensions</code> and click ⟳ on the TradeLingo card.</span></li>
+          <li><span data-lang="zh">刷新 WhatsApp 网页。跳过这一步，页面会提示“插件已更新或重载，请刷新 WhatsApp 页面”。</span><span data-lang="en">Reload WhatsApp Web. If you skip this, the page will remind you to reload.</span></li>
+        </ol>
+        <div class="warn"><span data-lang="zh">不要删掉旧插件再从新文件夹加载。浏览器按文件夹保存插件设置，换了文件夹，之前填的 Key 和设置都不会带过去。</span><span data-lang="en">Don't remove the old extension and load from a new folder. The browser stores settings per folder, so a new folder starts with empty settings.</span></div>
+        <p><span data-lang="zh">每个版本改了什么，见<a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md">更新记录</a>。</span><span data-lang="en">See the <a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md">changelog</a> for what changed in each version.</span></p>
+
+        <h3 style="font-size:20px;margin:36px 0 12px"><span data-lang="zh">换电脑或重装</span><span data-lang="en">Moving to another computer</span></h3>
+        <p><span data-lang="zh">作战卡、话术、术语表和客户语言记录只保存在这台电脑的浏览器里。换电脑、换浏览器或重装前，在设置页“备份与恢复”导出一个 JSON 文件，到新环境装好插件后导入即可，导入时与现有数据合并。API Key 默认不导出；勾选“包含 API Key”的话，请妥善保管这个文件。</span><span data-lang="en">Battle cards, phrases, glossary and per-chat languages live only in this browser. Before switching computers or browsers, export a JSON file from Backup and restore in settings, then import it after installing on the new one; imports merge with existing data. API keys are not exported unless you tick the option; if you do, keep the file private.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block alt" id="trouble">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2><span data-lang="zh">装不上或没反应</span><span data-lang="en">If something doesn't work</span></h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary><span data-lang="zh">加载时提示“清单文件缺失或不可读取”</span><span data-lang="en">"Manifest file is missing or unreadable"</span></summary>
+          <div class="ans"><p><span data-lang="zh">选错了文件夹。要选的是 <code>extension</code> 文件夹本身，不是外层的 <code>tradelingo-main</code>，也不是压缩包。</span><span data-lang="en">The wrong folder was selected. Choose the <code>extension</code> folder itself, not the outer <code>tradelingo-main</code> folder or the ZIP file.</span></p></div>
+        </details>
+        <details>
+          <summary><span data-lang="zh">找不到“加载已解压的扩展程序”按钮</span><span data-lang="en">I can't find the "Load unpacked" button</span></summary>
+          <div class="ans"><p><span data-lang="zh">先打开“开发者模式”开关（Chrome 在右上角，Edge 在左侧），按钮才会出现。公司电脑如果被管理员禁止了开发者模式，需要联系 IT。</span><span data-lang="en">Turn on Developer mode first (top right in Chrome, left sidebar in Edge). On a managed work computer, an administrator may have disabled it; ask your IT team.</span></p></div>
+        </details>
+        <details>
+          <summary><span data-lang="zh">消息下面没有译文，工具条也不出现</span><span data-lang="en">No translations and no toolbar</span></summary>
+          <div class="ans"><p><span data-lang="zh">刷新 WhatsApp 网页；确认设置页里“启用插件”和“自动翻译收到的消息”已勾选，并且至少一个引擎测试成功。还不行的话，打开一个聊天按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>，把复制出的诊断信息（不含消息内容和电话）提交到 <a href="https://github.com/adonisai2026-alt/tradelingo/issues">GitHub Issues</a>。</span><span data-lang="en">Reload WhatsApp Web, and check in settings that the extension and automatic translation are on and at least one engine passed its test. If it still fails, open a chat, press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> and post the copied diagnostic info (no message text or phone numbers) in <a href="https://github.com/adonisai2026-alt/tradelingo/issues">GitHub Issues</a>.</span></p></div>
+        </details>
+        <details>
+          <summary><span data-lang="zh">DeepSeek 测试“连接卡住”或“响应超时”</span><span data-lang="en">DeepSeek test hangs or times out</span></summary>
+          <div class="ans"><p><span data-lang="zh">看测试卡在哪一步。第 1 步失败，通常是 VPN 或代理把流量绕到了国外，可以把 deepseek.com 设为直连；第 2 步失败，多半是 DeepSeek 服务器繁忙，可以到 status.deepseek.com 查看。</span><span data-lang="en">Check which step fails. Step 1 usually means a VPN or proxy is routing the traffic abroad; set deepseek.com to connect directly. Step 2 usually means DeepSeek is busy; see status.deepseek.com.</span></p></div>
+        </details>
+        <details>
+          <summary><span data-lang="zh">提示账户欠费或余额不足</span><span data-lang="en">"Account overdue" or "insufficient balance"</span></summary>
+          <div class="ans"><p><span data-lang="zh">到对应平台充值即可。充值前，插件会自动改用其他已填 Key 的引擎。</span><span data-lang="en">Top up on that provider's site. Until then, the extension switches to another engine that has a key.</span></p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="./"><img src="site/icon-192.png" alt="" width="30" height="30">TradeLingo</a>
+        <p class="disclaimer">
+          <span data-lang="zh">TradeLingo 是独立的开源项目，与 WhatsApp、Meta 没有任何关联，也未获得其认可或赞助。“WhatsApp”是其所有者的商标，本站只用它说明插件适用的网站。</span>
+          <span data-lang="en">TradeLingo is an independent open-source project. It is not affiliated with, endorsed by or sponsored by WhatsApp or Meta. "WhatsApp" is a trademark of its owner and is used here only to describe the website the extension works with.</span>
+        </p>
+      </div>
+      <ul>
+        <li><a href="./"><span data-lang="zh">首页</span><span data-lang="en">Home</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo"><span data-lang="zh">GitHub 仓库</span><span data-lang="en">GitHub repository</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/issues"><span data-lang="zh">问题反馈（Issues）</span><span data-lang="en">Report an issue</span></a></li>
+        <li><a href="manual.zh-CN.html"><span data-lang="zh">图文说明书</span><span data-lang="en">Illustrated manual (Chinese)</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/PRIVACY.md"><span data-lang="zh">隐私说明</span><span data-lang="en">Privacy</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"><span data-lang="zh">更新记录</span><span data-lang="en">Changelog</span></a></li>
+      </ul>
+    </div>
+    <div class="foot-bottom"><span data-lang="zh">以 MIT 许可证开源。</span><span data-lang="en">Released under the MIT License.</span></div>
+  </div>
+</footer>
+
+<dialog class="lightbox" aria-label="截图 / Screenshot">
+  <button class="close" type="button" aria-label="关闭 / Close">×</button>
+  <img src="" alt="">
+  <p></p>
+</dialog>
+
+<script src="site/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN"
+  data-title-en="TradeLingo — WhatsApp Web translator & deal assistant for export sales (free, open source)"
+  data-desc-en="Free, open-source Chrome and Edge extension for WhatsApp Web. Customer messages are translated into Chinese automatically; replies written in Chinese are translated into Arabic, Russian, Kazakh, Bengali and more, with a back-translation check before you send. Deal battle cards and a daily follow-up list. Works with DeepL, Qwen-MT and DeepSeek.">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Apply the saved language before first paint to avoid a flash of the wrong language.
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var l = (q === 'en' || q === 'zh') ? q : localStorage.getItem('tl-lang');
+      if (l === 'en') document.documentElement.lang = 'en';
+    } catch (e) {}
+  })();
+</script>
+<title>TradeLingo｜外贸人的 WhatsApp 网页版翻译与商机助手（免费开源）</title>
+<meta name="description" content="TradeLingo 是免费开源的 Chrome / Edge 插件：WhatsApp 网页版的客户消息自动翻成中文；用中文写回复，一键译成阿拉伯语、俄语、哈萨克语、孟加拉语等，发送前回译核对；商机作战卡和今日跟进帮你不漏单。支持 DeepL、通义千问 Qwen-MT、DeepSeek。">
+<meta name="keywords" content="WhatsApp 翻译插件, WhatsApp 网页版翻译, 外贸翻译, 外贸 WhatsApp, WhatsApp 自动翻译, 阿拉伯语翻译, 哈萨克语翻译, 孟加拉语翻译, DeepL 翻译插件, 通义千问翻译, Qwen-MT, DeepSeek 翻译, WhatsApp Web translator, WhatsApp translation extension, export sales translator, Chrome extension">
+<meta name="theme-color" content="#00866a">
+<link rel="canonical" href="https://adonisai2026-alt.github.io/tradelingo/">
+<link rel="alternate" hreflang="zh-CN" href="https://adonisai2026-alt.github.io/tradelingo/">
+<link rel="alternate" hreflang="en" href="https://adonisai2026-alt.github.io/tradelingo/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://adonisai2026-alt.github.io/tradelingo/">
+<link rel="icon" type="image/png" sizes="32x32" href="site/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="site/icon-192.png">
+<link rel="apple-touch-icon" href="site/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TradeLingo">
+<meta property="og:url" content="https://adonisai2026-alt.github.io/tradelingo/">
+<meta property="og:title" content="TradeLingo｜外贸人的 WhatsApp 网页版翻译与商机助手（免费开源）">
+<meta property="og:description" content="WhatsApp 网页版客户消息自动翻成中文，中文回复一键译成客户的语言并回译核对；商机作战卡和今日跟进帮你不漏单。">
+<meta property="og:image" content="https://adonisai2026-alt.github.io/tradelingo/site/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="TradeLingo：外贸人的 WhatsApp Web 翻译与商机助手">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="site/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TradeLingo",
+  "alternateName": "TradeLingo — Translator for WhatsApp Web",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Google Chrome, Microsoft Edge (desktop)",
+  "softwareVersion": "0.7.1",
+  "license": "https://opensource.org/licenses/MIT",
+  "isAccessibleForFree": true,
+  "url": "https://adonisai2026-alt.github.io/tradelingo/",
+  "downloadUrl": "https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip",
+  "codeRepository": "https://github.com/adonisai2026-alt/tradelingo",
+  "description": "Translator and deal assistant for export sales on WhatsApp Web. Not affiliated with WhatsApp or Meta."
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span data-lang="zh">跳到正文</span><span data-lang="en">Skip to content</span></a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="site/icon-192.png" alt="" width="30" height="30">TradeLingo</a>
+    <nav class="nav" aria-label="页面导航">
+      <a href="#features"><span data-lang="zh">功能</span><span data-lang="en">Features</span></a>
+      <a href="#install"><span data-lang="zh">安装</span><span data-lang="en">Install</span></a>
+      <a href="#engines"><span data-lang="zh">翻译引擎</span><span data-lang="en">Engines</span></a>
+      <a href="#privacy"><span data-lang="zh">隐私</span><span data-lang="en">Privacy</span></a>
+      <a href="#faq"><span data-lang="zh">常见问题</span><span data-lang="en">FAQ</span></a>
+    </nav>
+    <div class="top-actions">
+      <button class="lang-toggle" type="button" aria-label="Switch to English"><span class="l-zh">中</span><span class="l-en">EN</span></button>
+      <a class="btn btn-primary btn-small" href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip"><span data-lang="zh">下载</span><span data-lang="en">Download</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ Hero ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <h1>
+          <span data-lang="zh">外贸人的 <span class="nw">WhatsApp Web</span><br>翻译与商机助手</span>
+          <span data-lang="en">Translator &amp; deal assistant for export sales on <span class="nw">WhatsApp Web</span></span>
+        </h1>
+        <p class="lead">
+          <span data-lang="zh">客户发来阿拉伯语、俄语、哈萨克语，你看到的是中文；你用中文写回复，发出去是客户的语言。它还帮你记住每个客户的报价、承诺和下一步。</span>
+          <span data-lang="en">Customer messages in Arabic, Russian or Kazakh show up in Chinese. You write your reply in Chinese and send it in the customer's language. It also keeps track of each customer's quotes, promises and next step.</span>
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href="https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            <span data-lang="zh">免费下载 ZIP</span><span data-lang="en">Download ZIP (free)</span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/adonisai2026-alt/tradelingo">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+            <span data-lang="zh">查看 GitHub</span><span data-lang="en">View on GitHub</span>
+          </a>
+        </div>
+        <ul class="facts">
+          <li><span data-lang="zh">免费，MIT 开源</span><span data-lang="en">Free, MIT licence</span></li>
+          <li><span data-lang="zh">支持 Chrome 和 Edge 电脑版</span><span data-lang="en">Chrome and Edge on desktop</span></li>
+          <li><span data-lang="zh">当前版本 v0.7.1</span><span data-lang="en">Version 0.7.1</span></li>
+        </ul>
+        <p class="notice">
+          <span data-lang="zh">暂未上架 Chrome 应用商店，需要手动加载，按<a href="install.html">安装教程</a>做大约 5 分钟。TradeLingo 是独立开源项目，不是 WhatsApp 或 Meta 的官方产品。</span>
+          <span data-lang="en">Not on the Chrome Web Store yet: you load it by hand, which takes about 5 minutes with the <a href="install.html">install guide</a>. TradeLingo is an independent open-source project, not an official WhatsApp or Meta product.</span>
+        </p>
+      </div>
+
+      <div class="demo" aria-live="off">
+        <div class="demo-head">
+          <span class="avatar" style="background:#00a884" aria-hidden="true">A</span>
+          <div>
+            <strong class="d-name">Al Noor Electrical</strong>
+            <small class="d-place"><span data-lang="zh">迪拜（示例）</span><span data-lang="en">Dubai (sample)</span></small>
+          </div>
+        </div>
+        <div class="bubble">
+          <p class="orig" dir="rtl" lang="ar">الكمية 200 قطعة. ما هو السعر ومدة التسليم؟</p>
+          <p class="trans"><span class="t-text">数量 200 台。价格和交期是多少？</span><span class="tag tag-deepl">DeepL</span></p>
+          <time>10:06</time>
+        </div>
+        <div class="demo-foot">
+          <span><span data-lang="zh">客户消息下方自动显示中文</span><span data-lang="en">Chinese translation appears under each message</span></span>
+          <div class="dots">
+            <button type="button" aria-label="阿拉伯语示例 / Arabic sample" aria-current="true"></button>
+            <button type="button" aria-label="哈萨克语示例 / Kazakh sample"></button>
+            <button type="button" aria-label="孟加拉语示例 / Bengali sample"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      Promo video slot. When docs/promo/ has a vertical video and a cover image, replace the
+      <figure class="shot-frame"> below with, for example:
+      <figure class="shot-frame promo">
+        <video src="promo/tradelingo.mp4" poster="promo/cover.jpg" controls playsinline preload="none"></video>
+      </figure>
+      Keep it without autoplay so it never plays sound by itself.
+    -->
+    <figure class="shot-frame">
+      <div class="shot-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+      <a class="zoom" href="screenshots/overview.webp" style="border:0;border-radius:0;box-shadow:none">
+        <img src="screenshots/overview.webp" width="2360" height="1320" fetchpriority="high"
+          data-alt-zh="装好 TradeLingo 后的 WhatsApp 网页版：客户的阿拉伯语消息下方显示中文译文，输入框上方是翻译工具条"
+          data-alt-en="WhatsApp Web with TradeLingo: Chinese translations under the customer's Arabic messages and the translation toolbar above the message box"
+          alt="装好 TradeLingo 后的 WhatsApp 网页版：客户的阿拉伯语消息下方显示中文译文，输入框上方是翻译工具条">
+      </a>
+    </figure>
+    <figcaption>
+      <span data-lang="zh">真实插件界面，客户名称和对话均为虚构。点图可放大。</span>
+      <span data-lang="en">Real extension interface; customer names and messages are fictional. Tap to enlarge. The extension's own interface is in Simplified Chinese.</span>
+    </figcaption>
+
+    <div class="langs">
+      <p>
+        <span data-lang="zh">回复可以译成 25 种外语，也可以译成繁体中文。</span>
+        <span data-lang="en">Replies can be translated into 25 foreign languages, and into Traditional Chinese.</span>
+        <span class="legend"><span data-lang="zh">DeepL 不支持，由 AI 引擎翻译</span><span data-lang="en">Not supported by DeepL; translated by the AI engines</span></span>
+      </p>
+      <ul>
+        <li lang="ar" dir="rtl">العربية</li>
+        <li lang="ru">Русский</li>
+        <li class="ai" lang="kk">Қазақша</li>
+        <li class="ai" lang="bn">বাংলা</li>
+        <li class="ai" lang="uz">Oʻzbekcha</li>
+        <li lang="en">English</li>
+        <li lang="es">Español</li>
+        <li lang="pt">Português</li>
+        <li lang="fr">Français</li>
+        <li lang="tr">Türkçe</li>
+        <li class="ai" lang="hi">हिन्दी</li>
+        <li class="ai" lang="ur" dir="rtl">اردو</li>
+        <li class="ai" lang="fa" dir="rtl">فارسی</li>
+        <li class="ai" lang="vi">Tiếng Việt</li>
+        <li class="ai" lang="th">ไทย</li>
+        <li class="ai" lang="ms">Bahasa Melayu</li>
+        <li class="ai" lang="fil">Filipino</li>
+        <li lang="id">Bahasa Indonesia</li>
+        <li lang="uk">Українська</li>
+        <li lang="pl">Polski</li>
+        <li lang="de">Deutsch</li>
+        <li lang="it">Italiano</li>
+        <li lang="nl">Nederlands</li>
+        <li lang="ja">日本語</li>
+        <li lang="ko">한국어</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Pain points ============ -->
+<section class="block" id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">客户遍布全球，语言却不止英语</span><span data-lang="en">Your customers are everywhere, and not all of them write English</span></h2>
+    </div>
+    <div class="pains">
+      <div class="pain">
+        <h3><span data-lang="zh">复制、翻译、再粘贴</span><span data-lang="en">Copy, translate, paste back</span></h3>
+        <p><span data-lang="zh">客户发来一段阿拉伯语或哈萨克语，复制到翻译网站，看懂了再写，写完再翻，再粘贴回 WhatsApp。一天来回几十次。</span><span data-lang="en">A customer writes in Arabic or Kazakh. You copy it into a translation site, write your answer, translate it back and paste it into WhatsApp. Dozens of times a day.</span></p>
+      </div>
+      <div class="pain">
+        <h3><span data-lang="zh">一个数字翻错，就是一单的损失</span><span data-lang="en">One wrong number costs an order</span></h3>
+        <p><span data-lang="zh">你看不懂自己发出去的外语。价格、数量、交期有没有被翻错，往往要等客户按错的数字下单才发现。</span><span data-lang="en">You can't read the foreign-language text you just sent. If a price, quantity or lead time came out wrong, you may only find out when the customer orders on the wrong figure.</span></p>
+      </div>
+      <div class="pain">
+        <h3><span data-lang="zh">客户一多，全靠脑子记</span><span data-lang="en">Too many customers to keep in your head</span></h3>
+        <p><span data-lang="zh">谁在等你的报价，答应了谁周五发 PI，哪个客户三天没回了。聊天记录一长，这些就埋在消息里。</span><span data-lang="en">Who is waiting for your quote, whom you promised a PI by Friday, which customer has gone quiet for three days. In a long chat, all of it gets buried.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Features ============ -->
+<section class="block alt" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">从看懂一条消息，到跟进每一单</span><span data-lang="en">From reading one message to following up every deal</span></h2>
+      <p><span data-lang="zh">五个功能按一笔生意的顺序排列。截图都是插件的真实界面。</span><span data-lang="en">Five features, in the order a deal happens. All screenshots show the real extension.</span></p>
+    </div>
+
+    <article class="feature">
+      <div class="f-text">
+        <div class="f-step"><span class="n">1/5</span><span class="verb"><span data-lang="zh">看懂</span><span data-lang="en">Read</span></span></div>
+        <h3><span data-lang="zh">客户消息自动翻成中文</span><span data-lang="en">Customer messages translated into Chinese automatically</span></h3>
+        <ul>
+          <li><span data-lang="zh">打开聊天，译文自动出现在每条消息下方，标签写明是哪个引擎翻的。</span><span data-lang="en">Open a chat and translations appear under each message, tagged with the engine used.</span></li>
+          <li><span data-lang="zh">觉得不准，点 ⇄ 换一个引擎重翻这一条。</span><span data-lang="en">Not sure about one? Click ⇄ to retranslate it with another engine.</span></li>
+          <li><span data-lang="zh">DeepL、通义千问 Qwen-MT、DeepSeek 三个引擎。一个出错（Key 无效、额度用完、服务故障），自动换下一个已填 Key 的引擎。</span><span data-lang="en">Three engines: DeepL, Qwen-MT and DeepSeek. If one fails (invalid key, quota used up, outage), the next engine with a key takes over.</span></li>
+          <li><span data-lang="zh">孟加拉语、哈萨克语等 DeepL 不支持的语言，自动交给 AI 引擎。</span><span data-lang="en">Languages DeepL doesn't support, such as Bengali and Kazakh, go to the AI engines automatically.</span></li>
+        </ul>
+        <p class="note"><span data-lang="zh">中文、纯数字、表情和链接自动跳过，不消耗额度；翻过的句子本地缓存，不重复计费。</span><span data-lang="en">Chinese text, numbers, emoji and links are skipped. Translated sentences are cached locally, so you aren't charged twice.</span></p>
+      </div>
+      <div class="f-media">
+        <figure>
+          <a class="zoom" href="screenshots/per-chat-language.webp"><img src="screenshots/per-chat-language.webp" width="2360" height="1320" loading="lazy"
+            data-alt-zh="哈萨克语客户的消息下方显示中文译文，标签分别为 Qwen 和 DeepL"
+            data-alt-en="A Kazakh customer's messages with Chinese translations underneath, tagged Qwen and DeepL"
+            alt="哈萨克语客户的消息下方显示中文译文，标签分别为 Qwen 和 DeepL"></a>
+        </figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="f-text">
+        <div class="f-step"><span class="n">2/5</span><span class="verb"><span data-lang="zh">说对</span><span data-lang="en">Reply right</span></span></div>
+        <h3><span data-lang="zh">写中文，发外语，发之前先核对</span><span data-lang="en">Write in Chinese, send in theirs, check before sending</span></h3>
+        <ul>
+          <li><span data-lang="zh">在输入框写中文，点工具条上的“译”或按 <kbd>Alt</kbd>+<kbd>T</kbd>，中文换成客户的语言。</span><span data-lang="en">Write Chinese in the message box, click 译 on the toolbar or press <kbd>Alt</kbd>+<kbd>T</kbd>, and it is replaced with the customer's language.</span></li>
+          <li><span data-lang="zh">黄色回译框把译文再翻回中文，价格、数量、交期有没有走样，一眼就能看到。</span><span data-lang="en">A yellow back-translation box translates it back into Chinese, so you can check prices, quantities and lead times at a glance.</span></li>
+          <li><span data-lang="zh">术语表让专业词每次都译得一样，例如“塑壳断路器 = MCCB”。</span><span data-lang="en">A glossary keeps technical terms consistent, for example 塑壳断路器 = MCCB.</span></li>
+          <li><strong><span data-lang="zh">插件从不替你发送消息。</span><span data-lang="en">The extension never sends a message for you.</span></strong> <span data-lang="zh">确认无误后，回车由你自己按。</span><span data-lang="en">You press Enter yourself.</span></li>
+        </ul>
+      </div>
+      <div class="f-media">
+        <figure>
+          <a class="zoom" href="screenshots/back-translation.webp"><img src="screenshots/back-translation.webp" width="1760" height="460" loading="lazy"
+            data-alt-zh="输入框里是阿拉伯语译文，上方黄色回译框显示：250A 三极断路器单价 38 美元，200 台交期约 15 天"
+            data-alt-en="Arabic translation in the message box; the yellow back-translation box above reads, in Chinese: 250A 3-pole breaker at $38, about 15 days for 200 units"
+            alt="输入框里是阿拉伯语译文，上方黄色回译框显示：250A 三极断路器单价 38 美元，200 台交期约 15 天"></a>
+        </figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="f-text">
+        <div class="f-step"><span class="n">3/5</span><span class="verb"><span data-lang="zh">说快</span><span data-lang="en">Reply fast</span></span></div>
+        <h3><span data-lang="zh">记住每个客户的语言，话术一键调出</span><span data-lang="en">Each customer's language remembered, saved phrases one keystroke away</span></h3>
+        <ul>
+          <li><span data-lang="zh">切换客户，发送语言自动跟着变。用 Chrome 自带的语言识别，不消耗翻译额度。</span><span data-lang="en">Switch chats and the reply language switches with you. Detection uses Chrome's built-in language detector, with no translation quota used.</span></li>
+          <li><span data-lang="zh">识别不对，或客户更习惯另一种语言，可以为这个客户手动固定。</span><span data-lang="en">Wrong guess, or a customer prefers another language? Pin it for that chat.</span></li>
+          <li><span data-lang="zh">在输入框输入 <code>/</code> 加关键词（如 <code>/报价</code>、<code>/交期</code>），插入事先存好的中文话术，自动翻成当前客户的语言。</span><span data-lang="en">Type <code>/</code> plus a keyword (such as <code>/报价</code> for quote or <code>/交期</code> for lead time) to insert a saved phrase, translated into the current customer's language.</span></li>
+        </ul>
+        <p class="note"><span data-lang="zh">示例话术里的交期、付款比例、认证只是示例，用之前请改成你们公司的实际情况。</span><span data-lang="en">The sample phrases' lead times, payment terms and certificates are examples only. Edit them to match your company before use.</span></p>
+      </div>
+      <div class="f-media">
+        <figure>
+          <a class="zoom" href="screenshots/quick-phrases.webp"><img src="screenshots/quick-phrases.webp" width="1760" height="840" loading="lazy"
+            data-alt-zh="输入 / 后弹出的快捷话术菜单：问候、需求、报价、交期、付款、样品、认证等，将翻译成阿拉伯语"
+            data-alt-en="Quick phrase menu opened by typing /: greeting, requirements, quote, lead time, payment, samples, certificates, to be translated into Arabic"
+            alt="输入 / 后弹出的快捷话术菜单：问候、需求、报价、交期、付款、样品、认证等，将翻译成阿拉伯语"></a>
+        </figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="f-text">
+        <div class="f-step"><span class="n">4/5</span><span class="verb"><span data-lang="zh">成交</span><span data-lang="en">Close</span></span></div>
+        <h3><span data-lang="zh">一键把聊天整理成商机作战卡</span><span data-lang="en">Turn a chat into a deal battle card in one click</span></h3>
+        <ul>
+          <li><span data-lang="zh">点工具条上的“单”，DeepSeek 把当前聊天整理成一屏：热度和判断依据、阶段、预估金额、卡点、双方承诺、报价记录、缺失信息。</span><span data-lang="en">Click 单 on the toolbar and DeepSeek sums up the chat on one screen: heat and the evidence for it, stage, estimated value, blockers, promises on both sides, price history and missing information.</span></li>
+          <li><span data-lang="zh">“下一步”附一条写好的中文消息，点“起草这条消息”就翻译成客户的语言填进输入框；缺失信息可以一键生成追问。</span><span data-lang="en">The next step comes with a drafted message; one click translates it into the customer's language and puts it in the message box. Missing information gets one-click follow-up questions.</span></li>
+          <li><span data-lang="zh">每一项都能查到出自哪条消息，没有依据的写“未知”，不瞎猜。</span><span data-lang="en">Every item links to the message it came from. Anything without evidence says "unknown".</span></li>
+          <li><span data-lang="zh">之后更新只发新消息，AI 的改动以建议形式出现，由你采纳；你手动改过的字段不会被覆盖。</span><span data-lang="en">Updates send only new messages. AI changes appear as suggestions you accept or ignore, and fields you edited stay as you left them.</span></li>
+        </ul>
+        <p class="note"><span data-lang="zh">热度和金额是 AI 的估计，以聊天原文为准。作战卡只用 DeepSeek，需要填 DeepSeek 的 Key。</span><span data-lang="en">Heat and value are AI estimates; the chat itself is the source of truth. Battle cards use DeepSeek only and need a DeepSeek key.</span></p>
+      </div>
+      <div class="f-media">
+        <figure>
+          <a class="zoom" href="screenshots/deal-card.webp"><img src="screenshots/deal-card.webp" width="1280" height="800" loading="lazy"
+            data-alt-zh="商机作战卡：热度高、阶段谈判、预估金额约 7000 美元、客户在等你回复 6 小时、下一步和起草按钮、卡点和需求"
+            data-alt-en="Deal battle card: heat high, stage negotiation, estimated value about $7,000, customer waiting 6 hours for a reply, next step with a draft button, blockers and requirements"
+            alt="商机作战卡：热度高、阶段谈判、预估金额约 7000 美元、客户在等你回复 6 小时、下一步和起草按钮、卡点和需求"></a>
+        </figure>
+      </div>
+    </article>
+
+    <article class="feature">
+      <div class="f-text">
+        <div class="f-step"><span class="n">5/5</span><span class="verb"><span data-lang="zh">不漏单</span><span data-lang="en">Follow up</span></span></div>
+        <h3><span data-lang="zh">今日跟进：先处理最值钱、最急的客户</span><span data-lang="en">Today's follow-up: the most valuable, most urgent customers first</span></h3>
+        <ul>
+          <li><span data-lang="zh">所有作战卡按“预估金额 × 热度 × 紧急度”排序，每个客户写明排在这里的原因。</span><span data-lang="en">All battle cards ranked by estimated value × heat × urgency, with the reason for each position.</span></li>
+          <li><span data-lang="zh">你的承诺到期、客户等你回复太久时，弹出桌面提醒；每天早上推送一条早报。</span><span data-lang="en">Desktop reminders when your promise is due or a customer has waited too long, plus a morning digest.</span></li>
+          <li><span data-lang="zh">没点开的聊天也能提醒：插件会读取左侧聊天列表的未读数。</span><span data-lang="en">Reminders work even for chats you haven't opened, using the unread counts in the chat list.</span></li>
+          <li><span data-lang="zh">可以导出 Excel（CSV），发给同事或老板。</span><span data-lang="en">Export to Excel (CSV) for your team or your boss.</span></li>
+        </ul>
+        <p class="note"><span data-lang="zh">排序和提醒都在你的电脑上计算，不消耗 Token。</span><span data-lang="en">Ranking and reminders are computed on your computer, at no API cost.</span></p>
+      </div>
+      <div class="f-media">
+        <figure>
+          <a class="zoom" href="screenshots/todays-follow-up.webp"><img src="screenshots/todays-follow-up.webp" width="1100" height="900" loading="lazy"
+            data-alt-zh="今日跟进页面：三个示例客户按金额、热度和紧急度排序，右上角有导出 Excel（CSV）按钮"
+            data-alt-en="Today's follow-up page: three sample customers ranked by value, heat and urgency, with an Export to Excel (CSV) button"
+            alt="今日跟进页面：三个示例客户按金额、热度和紧急度排序，右上角有导出 Excel（CSV）按钮"></a>
+        </figure>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ Install ============ -->
+<section class="block" id="install">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">三步装好</span><span data-lang="en">Install in three steps</span></h2>
+      <p><span data-lang="zh">插件还没上架 Chrome 应用商店，需要用“开发者模式”手动加载。不用写代码，跟着做就行。</span><span data-lang="en">The extension isn't on the Chrome Web Store yet, so you load it in Developer mode. No coding needed.</span></p>
+    </div>
+    <ol class="steps">
+      <li>
+        <h3><span data-lang="zh">下载并解压</span><span data-lang="en">Download and unzip</span></h3>
+        <p><span data-lang="zh">点上面的“免费下载 ZIP”，解压后找到里面的 <code>extension</code> 文件夹，放在一个固定的位置，以后不要删除或移动。</span><span data-lang="en">Click "Download ZIP" above and unzip it. Find the <code>extension</code> folder inside and keep it somewhere permanent. Don't move or delete it later.</span></p>
+      </li>
+      <li>
+        <h3><span data-lang="zh">加载到浏览器</span><span data-lang="en">Load it into the browser</span></h3>
+        <p><span data-lang="zh">在地址栏输入 <code>chrome://extensions</code>，打开右上角的“开发者模式”，点“加载已解压的扩展程序”，选择 <code>extension</code> 文件夹。</span><span data-lang="en">Go to <code>chrome://extensions</code>, turn on Developer mode (top right), click "Load unpacked" and choose the <code>extension</code> folder.</span></p>
+        <p><span data-lang="zh">Edge 用户打开 <code>edge://extensions</code>，开关在左侧。</span><span data-lang="en">On Edge, go to <code>edge://extensions</code>; the switch is on the left.</span></p>
+      </li>
+      <li>
+        <h3><span data-lang="zh">填 API Key，刷新 WhatsApp</span><span data-lang="en">Add an API key, reload WhatsApp</span></h3>
+        <p><span data-lang="zh">点工具栏上的 TradeLingo 图标，粘贴至少一个<a href="#engines">翻译引擎的 Key</a>，点“保存并测试”，看到“连接成功”后刷新 WhatsApp 网页版。</span><span data-lang="en">Click the TradeLingo icon, paste at least one <a href="#engines">engine key</a>, click 保存并测试 (Save &amp; test), and once it says connected, reload WhatsApp Web.</span></p>
+      </li>
+    </ol>
+    <div class="install-more">
+      <a class="btn btn-ghost" href="install.html"><span data-lang="zh">打开详细图文教程</span><span data-lang="en">Open the step-by-step guide</span></a>
+      <p><span data-lang="zh">包括 Edge 安装、升级到新版本、换电脑迁移数据。</span><span data-lang="en">Includes Edge, updating to a new version and moving to another computer.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Engines ============ -->
+<section class="block alt" id="engines">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">三个翻译引擎，去哪申请 Key</span><span data-lang="en">The three engines and where to get a key</span></h2>
+      <p><span data-lang="zh">插件免费，翻译费用由你直接付给服务商，没有中间商。至少填一个 Key 就能用。</span><span data-lang="en">The extension is free. Translation is paid directly to the provider you choose, with no middleman. One key is enough to start.</span></p>
+    </div>
+    <div class="table-wrap">
+      <table class="engines">
+        <thead>
+          <tr>
+            <th scope="col"><span data-lang="zh">引擎</span><span data-lang="en">Engine</span></th>
+            <th scope="col"><span data-lang="zh">默认用途</span><span data-lang="en">Default use</span></th>
+            <th scope="col"><span data-lang="zh">特点</span><span data-lang="en">Strengths</span></th>
+            <th scope="col"><span data-lang="zh">费用</span><span data-lang="en">Cost</span></th>
+            <th scope="col"><span data-lang="zh">去哪申请 Key</span><span data-lang="en">Get a key</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">DeepL <span class="tag tag-deepl">DeepL</span></th>
+            <td data-th-zh="默认用途" data-th-en="Default use"><span data-lang="zh">翻译收到的消息</span><span data-lang="en">Incoming messages</span></td>
+            <td data-th-zh="特点" data-th-en="Strengths"><span data-lang="zh">速度快、稳定；不支持孟加拉语、哈萨克语等语言</span><span data-lang="en">Fast and stable; doesn't support Bengali, Kazakh and some others</span></td>
+            <td data-th-zh="费用" data-th-en="Cost"><span data-lang="zh">免费版每月 50 万字符</span><span data-lang="en">Free plan: 500,000 characters a month</span></td>
+            <td data-th-zh="去哪申请 Key" data-th-en="Get a key"><a href="https://www.deepl.com/pro-api" rel="noopener">deepl.com</a> <span data-lang="zh">→ 账户 → API Keys</span><span data-lang="en">→ Account → API Keys</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Qwen-MT <span class="tag tag-qwen">Qwen</span></th>
+            <td data-th-zh="默认用途" data-th-en="Default use"><span data-lang="zh">翻译你发出的回复</span><span data-lang="en">Your outgoing replies</span></td>
+            <td data-th-zh="特点" data-th-en="Strengths"><span data-lang="zh">阿里云通义千问的专用翻译模型，92 种语言，严格执行术语表</span><span data-lang="en">Alibaba Cloud's dedicated translation model, 92 languages, applies your glossary strictly</span></td>
+            <td data-th-zh="费用" data-th-en="Cost"><span data-lang="zh">按用量计费，费用很低</span><span data-lang="en">Pay as you go, very low cost</span></td>
+            <td data-th-zh="去哪申请 Key" data-th-en="Get a key"><a href="https://bailian.console.aliyun.com/" rel="noopener"><span data-lang="zh">阿里云百炼</span><span data-lang="en">Alibaba Cloud Model Studio</span></a> <span data-lang="zh">→ API Key（地域推荐“华北2（北京）”）</span><span data-lang="en">→ API Key (Beijing region recommended)</span></td>
+          </tr>
+          <tr>
+            <th scope="row">DeepSeek <span class="tag tag-ds">DS</span></th>
+            <td data-th-zh="默认用途" data-th-en="Default use"><span data-lang="zh">翻译备用；<strong>商机作战卡只用它</strong></span><span data-lang="en">Translation fallback; <strong>the only engine for battle cards</strong></span></td>
+            <td data-th-zh="特点" data-th-en="Strengths"><span data-lang="zh">能参考最近的聊天上下文，可以调整语气</span><span data-lang="en">Uses recent chat context; adjustable tone</span></td>
+            <td data-th-zh="费用" data-th-en="Cost"><span data-lang="zh">按用量计费，需先充值</span><span data-lang="en">Pay as you go, prepaid balance</span></td>
+            <td data-th-zh="去哪申请 Key" data-th-en="Get a key"><a href="https://platform.deepseek.com/" rel="noopener">platform.deepseek.com</a> <span data-lang="zh">→ API Keys</span><span data-lang="en">→ API Keys</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="engines-foot">
+      <span data-lang="zh">推荐 DeepL 和 Qwen-MT 都填：收到的消息用 DeepL，发出的回复用 Qwen-MT；想用商机作战卡，再加 DeepSeek。价格以各平台官网为准。</span>
+      <span data-lang="en">Recommended: add both DeepL and Qwen-MT (DeepL for incoming, Qwen-MT for replies), and DeepSeek if you want battle cards. See each provider's site for current prices.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============ Privacy ============ -->
+<section class="block" id="privacy">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">你的数据去了哪里</span><span data-lang="en">Where your data goes</span></h2>
+      <p><span data-lang="zh">TradeLingo 没有自己的服务器，也不收集任何统计数据。要翻译的文字会离开你的电脑，但只发给你自己选的服务商。</span><span data-lang="en">TradeLingo has no server of its own and collects no analytics. Text being translated does leave your computer, but only to the provider you chose.</span></p>
+    </div>
+    <div class="privacy-grid">
+      <div class="flow" role="img" aria-label="数据流向：你的浏览器直接连接 DeepL、阿里云、DeepSeek，中间没有 TradeLingo 服务器 / Data flow: your browser connects directly to DeepL, Alibaba Cloud and DeepSeek, with no TradeLingo server in between">
+        <div class="flow-row">
+          <div class="node you">
+            <strong><span data-lang="zh">你的浏览器</span><span data-lang="en">Your browser</span></strong>
+            <small><span data-lang="zh">装着 TradeLingo</span><span data-lang="en">with TradeLingo</span></small>
+          </div>
+          <div class="arrow">
+            <svg viewBox="0 0 64 14" aria-hidden="true"><path d="M0 7h58M52 1l7 6-7 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            <span><span data-lang="zh">直接发送<br>要翻译的文字</span><span data-lang="en">text to translate,<br>sent directly</span></span>
+          </div>
+          <div class="providers">
+            <div class="node"><strong>DeepL</strong></div>
+            <div class="node"><strong><span data-lang="zh">阿里云百炼</span><span data-lang="en">Alibaba Cloud</span></strong><small>Qwen-MT</small></div>
+            <div class="node"><strong>DeepSeek</strong><small><span data-lang="zh">翻译、作战卡</span><span data-lang="en">translation, battle cards</span></small></div>
+          </div>
+        </div>
+        <div class="no-server">
+          <span><s><span data-lang="zh">TradeLingo 服务器</span><span data-lang="en">TradeLingo server</span></s></span>
+          <span><span data-lang="zh">不存在，没有任何中转</span><span data-lang="en">doesn't exist; nothing in between</span></span>
+        </div>
+        <div class="local">
+          <strong><span data-lang="zh">只存在你电脑的浏览器里</span><span data-lang="en">Kept only in your browser</span></strong>
+          <ul>
+            <li><span data-lang="zh">API Key、设置、术语表、快捷话术</span><span data-lang="en">API keys, settings, glossary, quick phrases</span></li>
+            <li><span data-lang="zh">翻译缓存、商机作战卡</span><span data-lang="en">Translation cache, deal battle cards</span></li>
+            <li><span data-lang="zh">客户语言记录（只存聊天编号的哈希值，不存电话或姓名）</span><span data-lang="en">Per-chat languages (a hash of the chat ID only, never phone numbers or names)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <ul class="privacy-list">
+          <li>
+            <strong><span data-lang="zh">只在翻译时发送</span><span data-lang="en">Sent only when translating</span></strong>
+            <span><span data-lang="zh">收到的消息、你写的回复、快捷话术和回译内容，从浏览器直接发给你选的服务商，按该服务商的隐私政策处理。翻译敏感报价前，可以先看看它的政策。</span><span data-lang="en">Incoming messages, your drafts, quick phrases and back-translations go straight from your browser to the provider you chose, under that provider's privacy policy. Check it before translating sensitive quotes.</span></span>
+          </li>
+          <li>
+            <strong><span data-lang="zh">作战卡只在你点击时生成</span><span data-lang="en">Battle cards only when you click</span></strong>
+            <span><span data-lang="zh">点“生成”或“更新”时，把当前聊天最多 80 条可见消息发给 DeepSeek，电话号码先打码。</span><span data-lang="en">When you click Generate or Update, up to the last 80 visible messages of that chat go to DeepSeek, with phone numbers masked first.</span></span>
+          </li>
+          <li>
+            <strong><span data-lang="zh">提醒和排序在本地完成</span><span data-lang="en">Reminders and ranking stay local</span></strong>
+            <span><span data-lang="zh">今日跟进、桌面提醒和每日早报都在你的电脑上计算，不发送到任何地方。客户语言识别用的也是 Chrome 自带的本地功能。</span><span data-lang="en">Today's follow-up, reminders and the digest are computed on your computer and sent nowhere. Language detection uses Chrome's on-device detector.</span></span>
+          </li>
+          <li>
+            <strong><span data-lang="zh">代码全部公开</span><span data-lang="en">All code is public</span></strong>
+            <span><span data-lang="zh">没有构建步骤，没有第三方依赖，你看到的源码就是运行的代码。详见<a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/PRIVACY.md">隐私说明</a>。</span><span data-lang="en">No build step and no dependencies: the source you read is the code that runs. See the <a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/PRIVACY.md">privacy notes</a>.</span></span>
+          </li>
+        </ul>
+        <div class="risk">
+          <strong><span data-lang="zh">使用前请了解：</span><span data-lang="en">Before you use it:</span></strong>
+          <span data-lang="zh">插件会修改你浏览器里的 WhatsApp 网页，这可能不符合 WhatsApp 的服务条款。插件只读取和翻译文字，从不自动发送消息，但请自行判断，风险自负。机器翻译也可能出错，重要内容发送前请核对。</span>
+          <span data-lang="en">The extension modifies the WhatsApp Web page in your browser, which may not be permitted by WhatsApp's Terms of Service. It only reads and translates text and never sends messages by itself, but use it at your own risk. Machine translation can be wrong; check important details before sending.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="block alt" id="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2><span data-lang="zh">常见问题</span><span data-lang="en">Questions</span></h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary><span data-lang="zh">要花钱吗？</span><span data-lang="en">Does it cost anything?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">插件本身免费、开源。翻译要用你自己申请的 API Key，费用直接付给服务商：DeepL 免费版每月有 50 万字符额度；Qwen-MT 和 DeepSeek 按用量计费，费用很低。翻过的句子会缓存，不重复计费。具体价格以各平台官网为准。</span><span data-lang="en">The extension is free and open source. Translation uses your own API keys, paid directly to the provider: DeepL's free plan includes 500,000 characters a month; Qwen-MT and DeepSeek are pay-as-you-go at low cost. Translations are cached, so the same sentence isn't charged twice. Check each provider's site for current prices.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">为什么不在 Chrome 应用商店里？</span><span data-lang="en">Why isn't it on the Chrome Web Store?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">目前还没有上架，所以要用“开发者模式”手动加载。这是 Chrome 和 Edge 自带的正规功能，按<a href="install.html">安装教程</a>做大约 5 分钟。</span><span data-lang="en">It hasn't been published there yet, so you load it in Developer mode, a standard feature of Chrome and Edge. The <a href="install.html">install guide</a> takes about 5 minutes.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">会不会自动替我发消息？</span><span data-lang="en">Will it send messages for me?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">不会。插件只把输入框里的中文换成译文，发不发、什么时候发，都由你自己按回车决定。作战卡的“起草这条消息”也只是填进输入框。</span><span data-lang="en">No. It only replaces the text in the message box with the translation; you decide whether and when to press Enter. "Draft this message" on the battle card also only fills the message box.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">装好了，但消息下面没有译文</span><span data-lang="en">Installed, but no translations appear</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">先刷新 WhatsApp 网页，安装或升级后必须刷新。再打开插件设置，确认“启用插件”和“自动翻译收到的消息”已勾选，并且至少有一个引擎测试成功。还不行的话，可能是 WhatsApp 网页改版了：打开一个聊天，按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> 复制诊断信息（不含消息内容和电话），提交到 <a href="https://github.com/adonisai2026-alt/tradelingo/issues">GitHub Issues</a>。</span><span data-lang="en">Reload WhatsApp Web first; that's required after installing or updating. Then open the settings and check that the extension and automatic translation are on and at least one engine passed its test. If it still doesn't work, WhatsApp Web may have changed: open a chat, press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> to copy diagnostic info (no message text or phone numbers) and post it in <a href="https://github.com/adonisai2026-alt/tradelingo/issues">GitHub Issues</a>.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">Qwen-MT 提示“API Key 无效”</span><span data-lang="en">Qwen-MT says the API key is invalid</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">最常见的原因是地域不一致：Key 和地域是绑定的。在设置页把地域改成你创建 Key 时所在的地域（推荐“华北2（北京）”），再点“保存并测试”。</span><span data-lang="en">Usually the region doesn't match: keys are tied to a region. In settings, choose the region where you created the key (Beijing is recommended), then click Save &amp; test again.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">插件界面有英文吗？</span><span data-lang="en">Is the extension's interface available in English?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">目前插件界面只有简体中文。欢迎在 GitHub 上贡献其他语言的界面翻译。</span><span data-lang="en">Not yet: the interface is in Simplified Chinese for now. Contributions for other UI languages are welcome on GitHub.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">怎么升级？换电脑后数据怎么办？</span><span data-lang="en">How do I update, or move to another computer?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">升级：用新下载的文件覆盖原来的 <code>extension</code> 文件夹，在扩展程序页面点插件卡片上的 ⟳，再刷新 WhatsApp。一定要覆盖同一个文件夹，换文件夹加载会丢失已填的 Key 和设置。</span><span data-lang="en">To update, overwrite your existing <code>extension</code> folder with the new files, click ⟳ on the extension card and reload WhatsApp. Always use the same folder: loading from a new one starts with empty settings.</span></p>
+          <p><span data-lang="zh">换电脑或换浏览器：在设置页“备份与恢复”导出一个文件，到新环境导入即可，导入时与现有数据合并。</span><span data-lang="en">To move, export a backup from Backup and restore in settings and import it on the new computer or browser; imports merge with existing data.</span></p>
+        </div>
+      </details>
+      <details>
+        <summary><span data-lang="zh">和应用商店里同名的 TradeLingo 是一回事吗？</span><span data-lang="en">Is this the same as the other "TradeLingo" on the Chrome Web Store?</span></summary>
+        <div class="ans">
+          <p><span data-lang="zh">不是。Chrome 应用商店里有一个叫“TradeLingo — Learn Construction Spanish While Browsing”的插件，与本项目无关。本项目只从 <a href="https://github.com/adonisai2026-alt/tradelingo">GitHub 仓库</a>下载。</span><span data-lang="en">No. "TradeLingo — Learn Construction Spanish While Browsing" on the Chrome Web Store is unrelated. This project is only distributed from its <a href="https://github.com/adonisai2026-alt/tradelingo">GitHub repository</a>.</span></p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="./"><img src="site/icon-192.png" alt="" width="30" height="30">TradeLingo</a>
+        <p class="disclaimer">
+          <span data-lang="zh">TradeLingo 是独立的开源项目，与 WhatsApp、Meta 没有任何关联，也未获得其认可或赞助。“WhatsApp”是其所有者的商标，本站只用它说明插件适用的网站。截图中的客户名称、电话和对话均为虚构。</span>
+          <span data-lang="en">TradeLingo is an independent open-source project. It is not affiliated with, endorsed by or sponsored by WhatsApp or Meta. "WhatsApp" is a trademark of its owner and is used here only to describe the website the extension works with. Customer names, numbers and messages in screenshots are fictional.</span>
+        </p>
+      </div>
+      <ul>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo"><span data-lang="zh">GitHub 仓库</span><span data-lang="en">GitHub repository</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/issues"><span data-lang="zh">问题反馈（Issues）</span><span data-lang="en">Report an issue</span></a></li>
+        <li><a href="install.html"><span data-lang="zh">安装教程</span><span data-lang="en">Install guide</span></a></li>
+        <li><a href="manual.zh-CN.html"><span data-lang="zh">图文说明书</span><span data-lang="en">Illustrated manual (Chinese)</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/PRIVACY.md"><span data-lang="zh">隐私说明</span><span data-lang="en">Privacy</span></a></li>
+        <li><a href="https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"><span data-lang="zh">更新记录</span><span data-lang="en">Changelog</span></a></li>
+      </ul>
+    </div>
+    <div class="foot-bottom">
+      <span data-lang="zh">以 MIT 许可证开源。</span><span data-lang="en">Released under the MIT License.</span>
+    </div>
+  </div>
+</footer>
+
+<dialog class="lightbox" aria-label="截图 / Screenshot">
+  <button class="close" type="button" aria-label="关闭 / Close">×</button>
+  <img src="" alt="">
+  <p></p>
+</dialog>
+
+<script src="site/site.js" defer></script>
+</body>
+</html>

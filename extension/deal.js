@@ -78,6 +78,91 @@
     return changed;
   }
 
+  // ---------- 左侧聊天列表：读取未读数（本地，不消耗 Token） ----------
+  // 用来补上“客户发了新消息、但你还没点开那个聊天”的盲区；只处理已有作战卡的客户
+  const UNREAD_RE = /(\d+)\s*(?:unread|条未读|條未讀|未读|未讀|непрочитан|غير مقروءة)/i;
+  const TIME_RE = /^(\d{1,2}):(\d{2})(?:\s?([AaPp][Mm]))?$/;
+
+  function findSidebar() {
+    const byId = document.querySelector('#pane-side');
+    if (byId) return byId;
+    return [...document.querySelectorAll('[aria-label]')].find((e) => {
+      if (!/chat list|聊天列表|对话列表|聊天|chats/i.test(e.getAttribute('aria-label') || '')) return false;
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.left < window.innerWidth * 0.4 && e.querySelector('span[title]');
+    }) || null;
+  }
+
+  // 聊天列表里的时间 → 时间戳（只能确定下限时取下限）
+  function listTimeTs(text, now) {
+    const t = norm(text);
+    const m = t.match(TIME_RE);
+    if (m) {
+      let h = Number(m[1]);
+      if (/p/i.test(m[3] || '') && h < 12) h += 12;
+      if (/a/i.test(m[3] || '') && h === 12) h = 0;
+      const d = new Date(now); d.setHours(h, Number(m[2]), 0, 0);
+      let ts = d.getTime();
+      if (ts > now + 60000) ts -= 86400000;
+      return ts;
+    }
+    if (/^(昨天|Yesterday|Вчера|أمس)$/i.test(t)) { const d = new Date(now); d.setHours(0, 0, 0, 0); return d.getTime() - 1; }
+    const dm = t.match(/^(\d{1,4})[\/.\-](\d{1,2})[\/.\-](\d{1,4})$/);
+    if (dm) { const meta = parseMeta(`[00:00, ${t}]`); if (meta.ts) return meta.ts + 86400000 - 1; }
+    return 0;
+  }
+
+  let sidebarInfo = { found: false, rows: 0, unread: 0, matched: 0 };
+  function scanSidebar() {
+    const side = findSidebar();
+    if (!side) { sidebarInfo = { found: false, rows: 0, unread: 0, matched: 0 }; return; }
+    const now = Date.now();
+    const seen = {};
+    const rows = side.querySelectorAll('[role="listitem"], [role="row"]');
+    for (const row of rows) {
+      const t = row.querySelector('span[title]');
+      const name = t && norm(t.getAttribute('title'));
+      if (!name || seen[name]) continue;
+      let unread = 0;
+      for (const e of row.querySelectorAll('[aria-label]')) {
+        const m = (e.getAttribute('aria-label') || '').match(UNREAD_RE);
+        if (m) { unread = Number(m[1]); break; }
+      }
+      if (!unread) {
+        const badge = row.querySelector('[data-testid="icon-unread-count"]');
+        if (badge) unread = parseInt(badge.textContent, 10) || 1;
+      }
+      const timeEl = [...row.querySelectorAll('span, div')].find((e) => !e.children.length && (TIME_RE.test(norm(e.textContent)) || /^(昨天|Yesterday)$/i.test(norm(e.textContent))));
+      // 最后一条消息是自己发的：列表预览前会有勾号（已发送/已送达/已读）
+      const mine = !unread && !!row.querySelector('[data-icon*="check"], [data-icon="msg-time"], [data-icon*="status-"]');
+      seen[name] = { unread, mine, time: timeEl ? norm(timeEl.textContent) : '' };
+    }
+    let changed = false;
+    let matched = 0;
+    for (const rec of Object.values(deals)) {
+      const s = rec.title && seen[norm(rec.title)];
+      if (!s) continue;
+      matched++;
+      if (s.unread > 0) {
+        if (!rec.unread || !rec.unreadSince) {
+          rec.unreadSince = listTimeTs(s.time, now) || now;
+          changed = true;
+        }
+        if (rec.unread !== s.unread) { rec.unread = s.unread; changed = true; }
+        if ((rec.lastIn || 0) < rec.unreadSince) { rec.lastIn = rec.unreadSince; changed = true; }
+      } else {
+        if (rec.unread) { rec.unread = 0; rec.unreadSince = 0; changed = true; }
+        // 你已在手机上回复：用列表时间更新“我方最后发言”，提醒随之解除
+        if (s.mine) {
+          const ts = listTimeTs(s.time, now);
+          if (ts && ts > (rec.lastOut || 0) && ts >= (rec.lastIn || 0)) { rec.lastOut = ts; changed = true; }
+        }
+      }
+    }
+    sidebarInfo = { found: true, rows: rows.length, unread: Object.values(seen).filter((x) => x.unread).length, matched };
+    if (changed) saveDeals();
+  }
+
   // ---------- 工具条按钮 ----------
   const dealBtn = document.createElement('button');
   dealBtn.className = 'wadl-deal-btn';
@@ -108,7 +193,9 @@
   function openPanel() { open = true; panel.style.display = 'flex'; render(); }
   function closePanel() { open = false; panel.style.display = 'none'; editing = ''; }
 
+  let sideTick = 0;
   setInterval(() => {
+    if (++sideTick % 5 === 1) scanSidebar(); // 每 10 秒读一次聊天列表
     const chat = T.currentChatKey();
     const rec = chat && deals[chat];
     if (rec) {
@@ -457,5 +544,5 @@
     refreshBadge();
   }
 
-  window.__tradelingoDeal = { parseMeta, maskPhones, collectMessages, openPanel, analyze, deals: () => deals };
+  window.__tradelingoDeal = { parseMeta, maskPhones, collectMessages, openPanel, analyze, scanSidebar, listTimeTs, sidebarInfo: () => sidebarInfo, deals: () => deals };
 })();

@@ -74,7 +74,7 @@ function tlWaiting(rec, now) {
   const lin = rec.lastIn || 0;
   const lout = rec.lastOut || 0;
   if (!lin && !lout) return null;
-  if (lin > lout) return { who: 'us', ms: now - lin, text: `客户在等你回复：${tlAgo(now - lin)}` };
+  if (lin > lout) return { who: 'us', ms: now - lin, text: rec.unread > 0 ? `客户有 ${rec.unread} 条未读，已等 ${tlAgo(now - lin)}` : `客户在等你回复：${tlAgo(now - lin)}` };
   return { who: 'customer', ms: now - lout, text: `等待客户回复：${tlAgo(now - lout)}` };
 }
 

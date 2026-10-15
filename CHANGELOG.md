@@ -1,5 +1,10 @@
 # Changelog / 更新记录
 
+## 0.7.1
+- Reminders now also read unread counts from the WhatsApp chat list (local, every 10 s while WhatsApp Web is open, only for customers with a battle card), so a customer who wrote while the chat was closed still triggers "waiting for your reply". A reply sent from your phone (tick in the list preview) clears it.
+- Diagnostics include chat-list detection. Illustrated manual updated with battle card, follow-up, reminders and backup chapters.
+- 提醒会读取左侧聊天列表的未读数（本地、每 10 秒、只针对有作战卡的客户），没点开的聊天也能提醒；在手机上回复后自动解除。诊断信息加入聊天列表识别；说明书更新。
+
 ## 0.7.0
 - New: follow-up reminders (desktop notifications for due/overdue promises and next steps, customers waiting longer than a set time) and a daily morning digest. Background check every 15 minutes, de-duplicated, at most 4 notifications at once; clicking opens Today's follow-up. Test-notification and check-now buttons.
 - New: backup and restore (JSON; API keys optional). Imports merge: newer battle card wins, hand-picked chat languages win.

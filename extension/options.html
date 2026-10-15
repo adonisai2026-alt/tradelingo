@@ -32,7 +32,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.6.0</span></h1>
+  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.7.0</span></h1>
 
   <div class="card">
     <div class="title">DeepL API Key <span class="badge b-deepl">DeepL</span></div>
@@ -113,6 +113,30 @@
     <p class="hint">在 WhatsApp 工具条上点“单”，DeepSeek 会把当前聊天整理成作战卡：热度、阶段、预估金额、卡点、承诺和报价记录、下一步，并能一键起草消息。商机功能只使用 DeepSeek，翻译设置不受影响。</p>
   </div>
 
+  <div class="card" id="remind">
+    <div class="title">跟进提醒</div>
+    <label class="check"><input type="checkbox" id="notifyEnabled"> 桌面提醒：我方承诺或下一步到期、客户等你回复</label>
+    <label class="row">客户等你回复超过 <select id="notifyWaitHours">
+      <option value="2">2 小时</option><option value="4">4 小时</option><option value="8">8 小时</option><option value="24">24 小时</option>
+    </select></label>
+    <label class="check"><input type="checkbox" id="digestEnabled"> 每日早报：今天要跟进哪些客户</label>
+    <label class="row">早报时间 <select id="digestHour">
+      <option value="7">07:00 之后</option><option value="8">08:00 之后</option><option value="9">09:00 之后</option><option value="10">10:00 之后</option><option value="11">11:00 之后</option>
+    </select></label>
+    <div class="key-row"><button id="testNotify" class="secondary">发送测试通知</button><button id="checkNow" class="secondary">立即检查一次</button></div>
+    <div id="statusNotify" class="status"></div>
+    <p class="hint">浏览器开着就会每 15 分钟检查一次，不需要打开 WhatsApp，也不消耗 Token。“客户等你回复”按你最近一次打开这个聊天时看到的消息计算。如果测试通知没有弹出，请在系统设置中允许 Chrome / Edge 发送通知。</p>
+  </div>
+
+  <div class="card" id="backup">
+    <div class="title">备份与恢复</div>
+    <label class="check"><input type="checkbox" id="backupKeys"> 备份中包含 API Key（只在自己的电脑之间迁移时勾选）</label>
+    <div class="key-row"><button id="exportBackup">导出备份</button><button id="importBackup" class="secondary">导入备份</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden></div>
+    <div id="statusBackup" class="status"></div>
+    <p class="hint">备份包括：作战卡、快捷话术、术语表、每个客户的语言记录和全部设置。导入时与现有数据合并：同一个客户保留分析时间较新的作战卡，手动指定的语言优先。也可以用来把数据搬到 Edge 或另一台电脑。</p>
+  </div>
+
   <div class="card">
     <div class="title">术语表 <span class="badge b-qwen">Qwen</span> <span class="badge b-ai">AI</span></div>
     <textarea id="glossary" placeholder="每行一条，例如：&#10;断路器 = circuit breaker&#10;交期 = lead time&#10;塑壳断路器 = MCCB"></textarea>
@@ -132,6 +156,7 @@
   </div>
 </div>
 <script src="common.js"></script>
+<script src="dealcore.js"></script>
 <script src="options.js"></script>
 </body>
 </html>

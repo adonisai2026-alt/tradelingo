@@ -148,3 +148,36 @@ function tlCSV(rows) {
   const esc = (x) => { x = tlStr(x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
   return '﻿' + rows.map((r) => r.map(esc).join(',')).join('\r\n'); // BOM：Excel 打开中文不乱码
 }
+
+// 备份导入：与现有数据合并
+function tlMergeBackup(cur, b) {
+  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey'];
+  const patch = {};
+  let settings = 0;
+  let keys = false;
+  for (const [k, v] of Object.entries(b.settings || {})) {
+    if (!(k in WADL_DEFAULTS)) continue;
+    if (KEY_FIELDS.includes(k)) { if (!v) continue; keys = true; }
+    patch[k] = v;
+    settings++;
+  }
+  const deals = { ...(cur.wadlDeals || {}) };
+  let dealsAdded = 0;
+  let dealsUpdated = 0;
+  for (const [k, rec] of Object.entries(b.deals || {})) {
+    if (!rec || typeof rec !== 'object' || !rec.card) continue;
+    if (!deals[k]) { deals[k] = rec; dealsAdded++; }
+    else if ((rec.analyzedAt || 0) > (deals[k].analyzedAt || 0)) { deals[k] = rec; dealsUpdated++; }
+  }
+  const langs = { ...(cur.wadlChatLangs || {}) };
+  let langCount = 0;
+  for (const [k, r] of Object.entries(b.chatLangs || {})) {
+    if (!r || !r.l) continue;
+    const old = langs[k];
+    const better = !old || (r.m && !old.m) || (r.m === old.m && (r.t || 0) > (old.t || 0));
+    if (better) { langs[k] = r; langCount++; }
+  }
+  patch.wadlDeals = deals;
+  patch.wadlChatLangs = langs;
+  return { patch, dealsAdded, dealsUpdated, langs: langCount, settings, keys };
+}

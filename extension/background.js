@@ -1,5 +1,5 @@
 // TradeLingo — 后台 service worker：调用 DeepL / Qwen-MT / DeepSeek（避开网页 CORS 限制）+ 翻译缓存 + 自动备用引擎
-importScripts('common.js');
+importScripts('common.js', 'dealcore.js');
 
 const CACHE_MAX = 3000;
 const DEEPSEEK_BASE = 'https://api.deepseek.com';
@@ -560,6 +560,99 @@ async function dealAnalyze(msg) {
   return card;
 }
 
+
+// ---------- 跟进提醒与每日早报（本地计算，不消耗 Token） ----------
+const TL_ALARM = 'tl-check';
+const TL_DEALS_URL = () => chrome.runtime.getURL('deals.html');
+
+function ensureAlarm() {
+  chrome.alarms.get(TL_ALARM, (a) => { if (!a) chrome.alarms.create(TL_ALARM, { periodInMinutes: 15, delayInMinutes: 1 }); });
+}
+
+function notify(id, title, message) {
+  return new Promise((resolve) => {
+    try {
+      chrome.notifications.create(id, { type: 'basic', iconUrl: 'icons/icon128.png', title, message, priority: 1 }, () => resolve(!chrome.runtime.lastError));
+    } catch (e) { resolve(false); }
+  });
+}
+
+// 计算这一轮要发的提醒（纯函数，便于测试）
+function planReminders(deals, s, notified, now) {
+  const out = [];
+  const today = tlTodayStr(new Date(now));
+  const hour = new Date(now).getHours();
+  const marks = {};
+  if (s.digestEnabled && hour >= Number(s.digestHour || 9) && notified.__digest !== today) {
+    const ranked = Object.entries(deals).map(([k, r]) => ({ k, r, ...tlScore(r, now) })).filter((x) => x.reasons.length).sort((a, b) => b.score - a.score);
+    marks.__digest = today;
+    if (ranked.length) {
+      const top = ranked.slice(0, 3).map((x, i) => `${i + 1}. ${tlDealTitle(x.r)}：${x.reasons[0]}`);
+      out.push({ id: 'tl-digest-' + today, title: `今日跟进：${ranked.length} 个客户需要处理`, message: top.join('\n') });
+    }
+  }
+  if (s.notifyEnabled) {
+    const waitMs = Math.max(1, Number(s.notifyWaitHours || 4)) * 3600000;
+    for (const [chat, rec] of Object.entries(deals)) {
+      const card = rec.card || {};
+      const name = tlDealTitle(rec);
+      if (!tlIsManual(card.commitments)) {
+        for (const c of tlArr(card.commitments)) {
+          if (c.who !== '我方' || !c.due || c.due > today) continue;
+          const key = `c|${chat}|${c.what}|${c.due}`;
+          if (notified[key] === today) continue;
+          marks[key] = today;
+          out.push({ id: 'tl-c-' + chat + '-' + out.length, title: `${c.due < today ? '承诺已逾期' : '承诺今天到期'}：${name}`, message: `我方承诺：${c.what}` });
+        }
+      }
+      const nx = card.next;
+      if (nx && !tlIsManual(nx) && nx.owner === '我方' && nx.due && nx.due <= today) {
+        const key = `n|${chat}|${nx.action}|${nx.due}`;
+        if (notified[key] !== today) {
+          marks[key] = today;
+          out.push({ id: 'tl-n-' + chat + '-' + out.length, title: `下一步${nx.due < today ? '已逾期' : '今天到期'}：${name}`, message: nx.action });
+        }
+      }
+      if (rec.lastIn && rec.lastIn > (rec.lastOut || 0) && now - rec.lastIn >= waitMs) {
+        const key = `w|${chat}|${rec.lastIn}`;
+        if (!notified[key]) {
+          marks[key] = today;
+          out.push({ id: 'tl-w-' + chat, title: `客户在等你回复：${name}`, message: `已等待 ${tlAgo(now - rec.lastIn)}` });
+        }
+      }
+    }
+  }
+  // 一次最多弹 4 条，其余合并成一条
+  const digest = out.filter((n) => n.id.startsWith('tl-digest'));
+  const rest = out.filter((n) => !n.id.startsWith('tl-digest'));
+  const shown = rest.length > 4 ? [...rest.slice(0, 3), { id: 'tl-more-' + now, title: `还有 ${rest.length - 3} 条跟进提醒`, message: '点击打开今日跟进查看全部' }] : rest;
+  return { list: [...digest, ...shown], marks };
+}
+
+async function checkReminders(force) {
+  const s = await getSettings();
+  if (!s.notifyEnabled && !s.digestEnabled) return [];
+  const st = await chrome.storage.local.get({ wadlDeals: {}, wadlNotified: {} });
+  const notified = st.wadlNotified || {};
+  if (force) delete notified.__digest;
+  const { list, marks } = planReminders(st.wadlDeals || {}, s, notified, Date.now());
+  for (const n of list) await notify(n.id, n.title, n.message);
+  // 合并去重记录，只保留最近 14 天
+  const cutoff = tlTodayStr(new Date(Date.now() - 14 * 86400000));
+  const merged = { ...notified, ...marks };
+  for (const k of Object.keys(merged)) if (k !== '__digest' && typeof merged[k] === 'string' && merged[k] < cutoff) delete merged[k];
+  await chrome.storage.local.set({ wadlNotified: merged });
+  return list;
+}
+
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === TL_ALARM) checkReminders(); });
+chrome.notifications.onClicked.addListener((id) => {
+  chrome.notifications.clear(id);
+  if (id.startsWith('tl-')) chrome.tabs.create({ url: TL_DEALS_URL() });
+});
+chrome.runtime.onStartup.addListener(() => { ensureAlarm(); setTimeout(checkReminders, 5000); });
+ensureAlarm();
+
 // 升级迁移：旧模型名改为 deepseek-flash；v0.3 起发送默认改用 Qwen-MT（只迁移一次）
 chrome.runtime.onInstalled.addListener(async () => {
   const st = await chrome.storage.local.get({ deepseekModel: '', outgoingEngine: '', wadlMigr03: false });
@@ -581,6 +674,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true, text: await testEngine(msg.engine, msg.key, msg.model, msg.region) });
       } else if (msg.type === 'deal') {
         sendResponse({ ok: true, card: await dealAnalyze(msg) });
+      } else if (msg.type === 'testNotify') {
+        const ok = await notify('tl-test-' + Date.now(), 'TradeLingo 测试通知', '能看到这条通知，说明跟进提醒可以正常弹出。');
+        sendResponse(ok ? { ok: true } : { ok: false, error: '通知没有弹出：请检查系统通知设置是否允许 Chrome / Edge 发送通知' });
+      } else if (msg.type === 'checkNow') {
+        const list = await checkReminders(true);
+        sendResponse({ ok: true, count: list.length });
       } else if (msg.type === 'openDeals') {
         await chrome.tabs.create({ url: chrome.runtime.getURL('deals.html') });
         sendResponse({ ok: true });

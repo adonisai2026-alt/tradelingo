@@ -31,8 +31,8 @@
   for (const [v, label] of WADL_DS_MODELS) $('deepseekModel').add(new Option(label, v));
   for (const [v, label] of WADL_QWEN_MODELS) $('qwenModel').add(new Option(label, v));
 
-  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate'];
-  const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality'];
+  const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled'];
+  const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality', 'notifyWaitHours', 'digestHour'];
 
   const STATUS_IDS = { deepl: 'statusDeepl', qwen: 'statusQwen', deepseek: 'statusDeepseek' };
 
@@ -67,7 +67,7 @@
     $('glossary').value = s.glossary;
     $('phrases').value = s.phrases;
     CHECKS.forEach((id) => { $(id).checked = s[id]; });
-    SELECTS.forEach((id) => { $(id).value = s[id]; });
+    SELECTS.forEach((id) => { $(id).value = String(s[id]); });
     if (s.apiKey) test('deepl'); else setStatus('statusDeepl', '未填写');
     if (s.qwenKey) setStatus('statusQwen', '已填写（点“保存并测试”试译一句）');
     else setStatus('statusQwen', '未填写');
@@ -87,7 +87,8 @@
   $('deepseekModel').addEventListener('change', () => chrome.storage.local.set({ deepseekModel: wadlDsModel($('deepseekModel').value) }));
 
   CHECKS.forEach((id) => $(id).addEventListener('change', () => chrome.storage.local.set({ [id]: $(id).checked })));
-  SELECTS.forEach((id) => $(id).addEventListener('change', () => chrome.storage.local.set({ [id]: $(id).value })));
+  const NUMERIC = ['notifyWaitHours', 'digestHour'];
+  SELECTS.forEach((id) => $(id).addEventListener('change', () => chrome.storage.local.set({ [id]: NUMERIC.includes(id) ? Number($(id).value) : $(id).value })));
 
   let gTimer = null;
   $('glossary').addEventListener('input', () => {
@@ -102,6 +103,60 @@
   });
 
   $('openDeals').addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL('deals.html') }));
+
+  // ---------- 提醒 ----------
+  $('testNotify').addEventListener('click', async () => {
+    const r = await send({ type: 'testNotify' });
+    setStatus('statusNotify', r.ok ? '✓ 已发送测试通知，请看屏幕右下角（或通知中心）' : '✗ ' + r.error, r.ok);
+  });
+  $('checkNow').addEventListener('click', async () => {
+    const r = await send({ type: 'checkNow' });
+    setStatus('statusNotify', r.ok ? (r.count ? `✓ 已发出 ${r.count} 条提醒` : '✓ 现在没有需要提醒的事项') : '✗ ' + r.error, r.ok);
+  });
+
+  // ---------- 备份与恢复 ----------
+  const KEY_FIELDS = ['apiKey', 'deepseekKey', 'qwenKey'];
+  $('exportBackup').addEventListener('click', async () => {
+    const all = await chrome.storage.local.get(null);
+    const settings = {};
+    for (const k of Object.keys(WADL_DEFAULTS)) if (k in all && (!KEY_FIELDS.includes(k) || $('backupKeys').checked)) settings[k] = all[k];
+    const backup = {
+      app: 'TradeLingo', format: 1, version: chrome.runtime.getManifest().version, exportedAt: new Date().toISOString(),
+      includesKeys: $('backupKeys').checked, settings, deals: all.wadlDeals || {}, chatLangs: all.wadlChatLangs || {}
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `TradeLingo-备份-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setStatus('statusBackup', `✓ 已导出：${Object.keys(backup.deals).length} 张作战卡、${Object.keys(backup.chatLangs).length} 条客户语言记录${backup.includesKeys ? '（含 API Key，请妥善保管）' : ''}`, true);
+  });
+
+  // 弹出窗口里选文件会让窗口关闭，所以导入在完整的设置页里进行
+  $('importBackup').addEventListener('click', () => {
+    if (!document.body.classList.contains('page')) {
+      chrome.tabs.create({ url: chrome.runtime.getURL('options.html?page=1#backup') });
+      return;
+    }
+    $('importFile').click();
+  });
+
+  $('importFile').addEventListener('change', async () => {
+    const file = $('importFile').files[0];
+    $('importFile').value = '';
+    if (!file) return;
+    let b;
+    try { b = JSON.parse(await file.text()); } catch (e) { setStatus('statusBackup', '✗ 文件不是有效的备份（JSON 格式错误）', false); return; }
+    if (!b || b.app !== 'TradeLingo' || typeof b.settings !== 'object') { setStatus('statusBackup', '✗ 这不是 TradeLingo 的备份文件', false); return; }
+    const cur = await chrome.storage.local.get({ wadlDeals: {}, wadlChatLangs: {} });
+    const res = tlMergeBackup(cur, b);
+    await chrome.storage.local.set(res.patch);
+    setStatus('statusBackup', `✓ 已导入：新增 ${res.dealsAdded} 张、更新 ${res.dealsUpdated} 张作战卡，${res.langs} 条语言记录，${res.settings} 项设置${res.keys ? '（含 API Key）' : ''}`, true);
+    setTimeout(() => location.reload(), 1500);
+  });
+
+  if (location.hash === '#backup') setTimeout(() => $('backup').scrollIntoView(), 100);
 
   $('clearCache').addEventListener('click', async () => {
     const resp = await send({ type: 'clearCache' });

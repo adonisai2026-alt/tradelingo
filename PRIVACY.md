@@ -17,6 +17,10 @@ Each provider handles the text under its own privacy policy. Check it before tra
 
 **What is stored locally** (`chrome.storage.local`, on your computer only): API keys, settings, glossary, quick phrases, a translation cache, per-chat language records, and deal battle cards. Per-chat records store only a hash of the chat ID, never phone numbers or names.
 
+Follow-up reminders are computed locally from your saved battle cards and shown with your system's notifications; nothing is sent anywhere.
+
+Backup files are saved where you choose. If you include API keys, keep the file private.
+
 Language detection for per-chat language memory uses Chrome's built-in `chrome.i18n.detectLanguage`, which runs on your device.
 
 **Diagnostics** (<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>) copy only page structure and counts to your clipboard. Message text and phone numbers are removed. Nothing is sent anywhere unless you paste it yourself.
@@ -39,6 +43,10 @@ TradeLingo 完全在你的浏览器中运行，没有自己的服务器，也不
 各服务商按照其自身的隐私政策处理这些文字，翻译敏感内容前请先了解相关政策。
 
 **本地保存的内容**（`chrome.storage.local`，只在你的电脑上）：API Key、设置、术语表、快捷话术、翻译缓存、客户语言记录、商机作战卡。客户语言记录只保存聊天编号的哈希值，不保存电话号码或姓名。
+
+跟进提醒根据本地保存的作战卡计算，通过系统通知显示，不会发送到任何地方。
+
+备份文件保存在你选择的位置；如果包含了 API Key，请妥善保管，不要发给别人。
 
 识别客户语言使用 Chrome 自带的 `chrome.i18n.detectLanguage`，在你的电脑上本地完成。
 

@@ -1,5 +1,10 @@
 # Changelog / 更新记录
 
+## 0.7.0
+- New: follow-up reminders (desktop notifications for due/overdue promises and next steps, customers waiting longer than a set time) and a daily morning digest. Background check every 15 minutes, de-duplicated, at most 4 notifications at once; clicking opens Today's follow-up. Test-notification and check-now buttons.
+- New: backup and restore (JSON; API keys optional). Imports merge: newer battle card wins, hand-picked chat languages win.
+- 新增：跟进提醒与每日早报（每 15 分钟检查、去重、最多同时 4 条，点击打开今日跟进）；备份与恢复（可选含 API Key，导入时合并）。Edge 安装说明。
+
 ## 0.6.0
 - New: **deal battle card** (DeepSeek only; translation settings unchanged). Heat with evidence, stage, estimated value, blockers, next step with one-click draft, commitments, price history, missing info with one-click follow-up questions, chat summary. Source messages shown on hover; phone numbers masked before sending.
 - Incremental updates send only new messages; AI changes appear as suggestions (accept / ignore / accept all); hand-edited fields are locked. Red dot on the toolbar button when a chat has unanalysed messages (no API call).

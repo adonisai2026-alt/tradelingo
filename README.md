@@ -22,6 +22,8 @@ Read every customer message in your own language, write replies in your language
 - **Three engines with automatic fallback.** DeepL, Qwen-MT (Alibaba Cloud Model Studio) and DeepSeek. If one fails (invalid key, quota, outage), TradeLingo switches to the next engine that has a key.
 - **Deal battle card (DeepSeek).** Click **单** on the toolbar to turn the current chat into a one-screen battle card: heat with evidence, stage, estimated deal value, blockers, the next step with a one-click draft message, commitments made by both sides, the price history, and missing information with one-click follow-up questions. Every item links to the messages it came from; unknowns stay "unknown". Later updates send only new messages, and AI changes are shown as suggestions you accept or ignore. Fields you edit by hand are locked.
 - **Today's follow-up.** All battle cards ranked by estimated value × heat × urgency (overdue promises, customers waiting for your reply, silent customers), computed locally with no API cost. Export to Excel (CSV).
+- **Follow-up reminders.** Desktop notifications when your promise or next step is due, or a customer has waited too long for your reply, plus a daily morning digest of who to follow up today. Checked every 15 minutes in the background, even when WhatsApp is closed; no API cost.
+- **Backup and restore.** Export battle cards, phrases, glossary, per-chat languages and settings to a JSON file (API keys optional) and import them on another computer or browser. Imports merge with existing data.
 - **More than 30 target languages**, including Bengali, Kazakh, Uzbek, Hindi, Urdu, Persian, Vietnamese, Thai, Malay and Filipino through the AI engines.
 
 The user interface is currently in **Simplified Chinese**. Contributions for other UI languages are welcome.
@@ -45,6 +47,8 @@ TradeLingo is not on the Chrome Web Store yet. Load it as an unpacked extension:
 3. Click **Load unpacked** and select the **`extension`** folder.
 4. Click the TradeLingo icon in the toolbar, paste your API key(s) and click **保存并测试** (Save & test).
 5. Reload WhatsApp Web.
+
+Works the same in **Microsoft Edge**: open `edge://extensions`, turn on Developer mode (left sidebar) and click **Load unpacked**. Settings are not shared between browsers; use Backup and restore to move them.
 
 To update, replace the files in the same folder, click ⟳ on the extension card, and reload WhatsApp Web. Keep loading from the same folder: Chrome ties saved settings to the folder you loaded, so loading from a new folder starts with empty settings.
 

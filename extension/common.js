@@ -18,6 +18,10 @@ var WADL_DEFAULTS = {
   glossary: '',                  // 自定义术语表（AI 使用）
   autoChatLang: true,            // 按聊天自动识别客户语言
   backTranslate: true,           // 发送前显示回译（中文）
+  notifyEnabled: true,           // 桌面提醒：承诺到期、客户等待回复
+  notifyWaitHours: 4,            // 客户等你回复超过几小时提醒
+  digestEnabled: true,           // 每日早报
+  digestHour: 9,                 // 早报时间（几点之后第一次检查时发送）
   // 快捷话术：每行 “关键词 | 中文内容”，在输入框输入 / 调出
   phrases: [
     '问候 | 您好！感谢您的咨询，请问有什么可以帮您？',

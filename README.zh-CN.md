@@ -119,4 +119,4 @@ docs/             截图、图标、图文手册
 
 ## 许可证
 
-[MIT](LICENSE)
+插件以 [MIT 许可证](LICENSE) 开源。`docs/` 中的网站文件（`index.html`、`install.html` 和 `docs/site/`）不适用 MIT 许可证，保留所有权利，详见 [docs/LICENSE-website.md](docs/LICENSE-website.md)。

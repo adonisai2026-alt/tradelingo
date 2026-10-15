@@ -121,4 +121,4 @@ Issues and pull requests are welcome, especially:
 
 ## License
 
-[MIT](LICENSE)
+The extension is released under the [MIT License](LICENSE). The website files in `docs/` (`index.html`, `install.html` and `docs/site/`) are not covered by it: all rights reserved, see [docs/LICENSE-website.md](docs/LICENSE-website.md).

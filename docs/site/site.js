@@ -1,3 +1,4 @@
+/* © 2026 adonisai2026-alt (TradeLingo). All rights reserved. Not covered by the repository's MIT License; see docs/LICENSE-website.md. */
 /* TradeLingo website: language switch, screenshot zoom, translation demo, copy buttons. */
 (function () {
   'use strict';

@@ -101,6 +101,8 @@
     pTimer = setTimeout(() => chrome.storage.local.set({ phrases: $('phrases').value }), 800);
   });
 
+  $('openDeals').addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL('deals.html') }));
+
   $('clearCache').addEventListener('click', async () => {
     const resp = await send({ type: 'clearCache' });
     setStatus('statusCache', resp.ok ? '✓ 缓存已清空' : '✗ ' + resp.error, resp.ok);

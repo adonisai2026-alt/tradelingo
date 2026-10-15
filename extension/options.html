@@ -32,7 +32,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.5.0</span></h1>
+  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.6.0</span></h1>
 
   <div class="card">
     <div class="title">DeepL API Key <span class="badge b-deepl">DeepL</span></div>
@@ -105,6 +105,12 @@
     </label>
     <label class="check"><input type="checkbox" id="useContext"> DeepSeek 翻译时参考最近 8 条聊天（Qwen-MT 不支持上下文）</label>
     <p class="hint">标有“（AI）”的语言 DeepL 不支持，会自动改用 Qwen-MT 或 DeepSeek。一个引擎出错时，插件会按 Qwen-MT → DeepL → DeepSeek 的顺序自动改用其他已填 Key 的引擎。</p>
+  </div>
+
+  <div class="card">
+    <div class="title">商机作战卡 <span class="badge b-ai">DeepSeek</span></div>
+    <button id="openDeals">打开今日跟进</button>
+    <p class="hint">在 WhatsApp 工具条上点“单”，DeepSeek 会把当前聊天整理成作战卡：热度、阶段、预估金额、卡点、承诺和报价记录、下一步，并能一键起草消息。商机功能只使用 DeepSeek，翻译设置不受影响。</p>
   </div>
 
   <div class="card">

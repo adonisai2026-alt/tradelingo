@@ -1,0 +1,461 @@
+// TradeLingo — 商机作战卡面板（在 WhatsApp 页面右侧）。分析只用 DeepSeek；起草/追问的翻译走现有翻译设置。
+(() => {
+  'use strict';
+  const T = window.__tradelingo;
+  if (!T) return;
+  const norm = T.norm;
+
+  // ---------- 读取消息：时间、发送方、正文（号码打码） ----------
+  // data-pre-plain-text 形如 “[10:05, 2026/10/15] 名字: ”
+  function parseMeta(pre) {
+    const m = pre && pre.match(/^\[([^\]]+)\]/);
+    if (!m) return { ts: 0, t: '' };
+    const inside = m[1];
+    const tm = inside.match(/(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?/);
+    const pm = /下午|晚上|PM|pm/.test(inside);
+    const am = /上午|凌晨|早上|AM|am/.test(inside);
+    const dm = inside.match(/(\d{1,4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,4})/);
+    if (!tm || !dm) return { ts: 0, t: inside.slice(0, 20) };
+    let [a, b, c] = [dm[1], dm[2], dm[3]].map(Number);
+    let y, mo, d;
+    if (a > 31) { y = a; mo = b; d = c; }
+    else {
+      y = c < 100 ? 2000 + c : c;
+      if (a > 12) { d = a; mo = b; }
+      else if (b > 12) { mo = a; d = b; }
+      else if (/^en-US/i.test(navigator.language)) { mo = a; d = b; }
+      else { d = a; mo = b; }
+    }
+    let h = Number(tm[1]);
+    const mi = Number(tm[2]);
+    if ((pm || /p/i.test(tm[3] || '')) && h < 12) h += 12;
+    if ((am || /a/i.test(tm[3] || '')) && h === 12) h = 0;
+    const date = new Date(y, mo - 1, d, h, mi);
+    if (isNaN(date)) return { ts: 0, t: inside.slice(0, 20) };
+    const p = (n) => String(n).padStart(2, '0');
+    return { ts: date.getTime(), t: `${p(mo)}-${p(d)} ${p(h)}:${p(mi)}` };
+  }
+
+  // 9 位以上的纯数字串视为电话号码，发给 AI 前打码
+  const maskPhones = (s) => s.replace(/\+?\d[\d\s\-()]{7,}\d/g, (x) => (x.replace(/\D/g, '').length >= 9 ? '[号码]' : x));
+
+  function collectMessages() {
+    return T.findMessages().map(({ container, textEl, isOut }) => {
+      const preEl = (container.closest && container.closest('[data-pre-plain-text]')) || (container.querySelector && container.querySelector('[data-pre-plain-text]'));
+      const meta = parseMeta(preEl && preEl.getAttribute('data-pre-plain-text'));
+      const text = maskPhones(norm(textEl.innerText || '')).slice(0, 600);
+      return { out: isOut, ts: meta.ts, t: meta.t, text, sig: meta.t + '|' + text.slice(0, 80) };
+    }).filter((m) => m.text);
+  }
+
+  // ---------- 存储 ----------
+  let deals = {};
+  chrome.storage.local.get({ wadlDeals: {} }).then((r) => { deals = r.wadlDeals || {}; refreshBadge(); });
+  chrome.storage.onChanged.addListener((ch, area) => {
+    if (area === 'local' && ch.wadlDeals) { deals = ch.wadlDeals.newValue || {}; if (open) render(); refreshBadge(); }
+  });
+  let saveTimer = null;
+  function saveDeals() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => chrome.storage.local.set({ wadlDeals: deals }), 200);
+  }
+
+  function newMessages(rec, msgs) {
+    if (!rec) return msgs;
+    for (let i = msgs.length - 1; i >= 0; i--) if (msgs[i].sig === rec.lastSig) return msgs.slice(i + 1);
+    if (rec.lastTs) return msgs.filter((m) => m.ts > rec.lastTs);
+    return [];
+  }
+
+  function updateActivity(rec, msgs) {
+    let changed = false;
+    const lin = Math.max(0, ...msgs.filter((m) => !m.out).map((m) => m.ts));
+    const lout = Math.max(0, ...msgs.filter((m) => m.out).map((m) => m.ts));
+    if (lin > (rec.lastIn || 0)) { rec.lastIn = lin; changed = true; }
+    if (lout > (rec.lastOut || 0)) { rec.lastOut = lout; changed = true; }
+    const pending = newMessages(rec, msgs).length;
+    if (pending !== (rec.pending || 0)) { rec.pending = pending; changed = true; }
+    return changed;
+  }
+
+  // ---------- 工具条按钮 ----------
+  const dealBtn = document.createElement('button');
+  dealBtn.className = 'wadl-deal-btn';
+  dealBtn.textContent = '单';
+  dealBtn.title = '商机作战卡（DeepSeek 分析当前聊天）';
+  dealBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  dealBtn.addEventListener('click', () => (open ? closePanel() : openPanel()));
+  T.bar.appendChild(dealBtn);
+
+  function refreshBadge() {
+    const chat = T.currentChatKey();
+    const rec = chat && deals[chat];
+    dealBtn.classList.toggle('wadl-has-new', !!(rec && rec.pending > 0));
+    dealBtn.title = rec && rec.pending > 0 ? `商机作战卡：有 ${rec.pending} 条新消息未分析` : '商机作战卡（DeepSeek 分析当前聊天）';
+  }
+
+  // ---------- 面板 ----------
+  const panel = document.createElement('div');
+  panel.id = 'tl-deal';
+  panel.style.display = 'none';
+  document.body.appendChild(panel);
+  let open = false;
+  let tab = 'card';
+  let busy = '';
+  let editing = '';
+  let lastChat = '';
+
+  function openPanel() { open = true; panel.style.display = 'flex'; render(); }
+  function closePanel() { open = false; panel.style.display = 'none'; editing = ''; }
+
+  setInterval(() => {
+    const chat = T.currentChatKey();
+    const rec = chat && deals[chat];
+    if (rec) {
+      const msgs = collectMessages();
+      if (msgs.length && updateActivity(rec, msgs)) saveDeals();
+    }
+    refreshBadge();
+    if (open && chat !== lastChat) { editing = ''; render(); }
+  }, 2000);
+
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+  const btn = (text, cls, onClick, title) => {
+    const b = el('button', cls, text);
+    if (title) b.title = title;
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+    return b;
+  };
+
+  function srcTitle(rec, src) {
+    const ids = Array.isArray(src) ? src : [];
+    const lines = ids.map((id) => rec.srcMap && rec.srcMap[id]).filter(Boolean)
+      .map((s) => `${s.t || ''} ${s.who}：${s.text.slice(0, 90)}`);
+    return lines.length ? '依据：\n' + lines.join('\n') : '';
+  }
+  function withSrc(node, rec, src) {
+    const t = srcTitle(rec, src);
+    if (t) { node.title = t; node.classList.add('tl-has-src'); }
+    return node;
+  }
+
+  function render() {
+    if (!open) return;
+    const chat = T.currentChatKey();
+    lastChat = chat;
+    const rec = chat && deals[chat];
+    panel.textContent = '';
+
+    // 头部
+    const head = el('div', 'tl-head');
+    head.append(el('b', 'tl-title', rec ? tlDealTitle(rec) : (T.headerName() || '当前聊天')));
+    head.append(btn('今日跟进', 'tl-link', () => T.send({ type: 'openDeals' }), '按优先级查看所有客户'));
+    head.append(btn('×', 'tl-x', closePanel, '关闭'));
+    panel.append(head);
+
+    if (!chat) { panel.append(el('div', 'tl-empty', '请先打开一个聊天。')); return; }
+
+    // 操作条
+    const msgs = collectMessages();
+    if (rec && msgs.length && updateActivity(rec, msgs)) saveDeals();
+    const ops = el('div', 'tl-ops');
+    if (busy) {
+      ops.append(el('span', 'tl-busy', busy));
+    } else if (!rec) {
+      ops.append(btn('生成作战卡', 'tl-primary', () => analyze('full'), '用 DeepSeek 分析当前聊天中可见的消息'));
+      ops.append(el('span', 'tl-hint', `将分析当前可见的 ${Math.min(msgs.length, 80)} 条消息（约 0.01 元）`));
+    } else {
+      if (rec.pending > 0) ops.append(btn(`更新（${rec.pending} 条新消息）`, 'tl-primary', () => analyze('update'), '只把新消息发给 DeepSeek，费用约为首次生成的一半'));
+      else ops.append(el('span', 'tl-hint', '没有新消息需要分析'));
+      ops.append(btn('重新生成', 'tl-ghost', () => {
+        if (rec.locked && rec.locked.length && !window.confirm('重新生成会覆盖你手动修改过的字段，确定吗？')) return;
+        analyze('full');
+      }, '从头分析当前可见的消息'));
+    }
+    panel.append(ops);
+    if (!rec) {
+      panel.append(el('div', 'tl-empty', '作战卡会告诉你：这个单有多热、卡在哪里、你答应过什么、报过什么价，以及下一句该说什么。'));
+      return;
+    }
+
+    // 标签页
+    const tabs = el('div', 'tl-tabs');
+    for (const [k, name] of [['card', '作战卡'], ['summary', '摘要']]) {
+      const t = btn(name, 'tl-tab' + (tab === k ? ' on' : ''), () => { tab = k; render(); });
+      tabs.append(t);
+    }
+    panel.append(tabs);
+
+    const body = el('div', 'tl-body');
+    panel.append(body);
+    if (tab === 'summary') renderSummary(body, rec);
+    else renderCard(body, rec);
+
+    const foot = el('div', 'tl-foot');
+    foot.append(el('span', 'tl-hint', `分析于 ${new Date(rec.analyzedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · DeepSeek`));
+    foot.append(btn('复制文本', 'tl-ghost', () => copy(tlDealText(rec), '已复制作战卡文本')));
+    foot.append(btn('复制到 Excel', 'tl-ghost', () => copy(tlTSV([TL_EXPORT_COLS, tlExportRow(rec)]), '已复制，可直接粘贴到 Excel'), '复制为表格（含表头）'));
+    panel.append(foot);
+  }
+
+  async function copy(text, okMsg) {
+    try { await navigator.clipboard.writeText(text); T.toast(okMsg); } catch (e) { T.toast('复制失败，请重试', true); }
+  }
+
+  // ---------- 作战卡 ----------
+  function section(body, rec, field, label, cls) {
+    const box = el('div', 'tl-sec' + (cls ? ' ' + cls : ''));
+    const h = el('div', 'tl-sec-h');
+    h.append(el('span', 'tl-label', label));
+    if ((rec.locked || []).includes(field)) h.append(el('span', 'tl-lock', '✎ 已手动'));
+    h.append(btn('编辑', 'tl-edit', () => { editing = field; render(); }, '手动修改；修改后 AI 更新不会覆盖它'));
+    box.append(h);
+    body.append(box);
+    if (editing === field) {
+      const ta = el('textarea', 'tl-ta');
+      ta.value = tlFieldText(field, rec.card[field]);
+      ta.rows = Math.max(2, ta.value.split('\n').length + 1);
+      const row = el('div', 'tl-edit-row');
+      row.append(btn('保存', 'tl-primary', () => {
+        rec.card[field] = { manual: ta.value.trim() };
+        rec.locked = Array.from(new Set([...(rec.locked || []), field]));
+        editing = '';
+        saveDeals();
+        render();
+      }));
+      row.append(btn('取消', 'tl-ghost', () => { editing = ''; render(); }));
+      box.append(ta, row);
+      setTimeout(() => ta.focus(), 0);
+      return null;
+    }
+    const v = rec.card[field];
+    if (tlIsManual(v)) { box.append(el('div', 'tl-text tl-manual', v.manual || '（空）')); return null; }
+    return box;
+  }
+
+  function renderCard(body, rec) {
+    const card = rec.card;
+    renderSuggestions(body, rec);
+
+    // 关键指标：热度 / 阶段 / 金额
+    const kpi = el('div', 'tl-kpi');
+    const heat = card.heat;
+    const lvl = tlHeatLevel(heat);
+    const hk = withSrc(el('div', 'tl-k tl-heat-' + ({ 高: 'hi', 中: 'mid', 低: 'lo' }[lvl] || 'na')), rec, heat && heat.src);
+    hk.append(el('small', '', '热度'), el('b', '', lvl ? (lvl === '高' ? '🔥 高' : lvl) : '—'));
+    const sk = el('div', 'tl-k');
+    sk.append(el('small', '', '阶段'), el('b', '', tlFieldText('stage', card.stage) || '—'));
+    const vk = el('div', 'tl-k');
+    vk.title = card.value && card.value.basis ? '估算：' + card.value.basis : '';
+    vk.append(el('small', '', '预估金额（估计）'), el('b', '', tlIsManual(card.value) ? card.value.manual : (tlMoney(card.value) || '未知')));
+    kpi.append(hk, sk, vk);
+    body.append(kpi);
+    if (heat && !tlIsManual(heat) && heat.reason) body.append(withSrc(el('div', 'tl-reason', '判断依据：' + heat.reason), rec, heat.src));
+    const kpiEdit = el('div', 'tl-kpi-edit');
+    for (const f of ['heat', 'stage', 'value']) kpiEdit.append(btn('改' + TL_DEAL_LABELS[f], 'tl-edit', () => { editing = f; render(); }));
+    body.append(kpiEdit);
+    if (['heat', 'stage', 'value'].includes(editing)) section(body, rec, editing, TL_DEAL_LABELS[editing]);
+
+    // 往来状态（本地计算）
+    const w = tlWaiting(rec);
+    if (w) body.append(el('div', 'tl-wait tl-wait-' + w.who, (w.who === 'us' ? '⏳ ' : '… ') + w.text));
+
+    // 下一步（最重要）
+    let box = section(body, rec, 'next', '▶ 下一步', 'tl-next');
+    if (box) {
+      const nx = card.next || {};
+      box.append(withSrc(el('div', 'tl-text tl-strong', tlFieldText('next', nx) || '—'), rec, nx.src));
+      if (nx.draft_zh) {
+        box.append(el('div', 'tl-draft', '“' + nx.draft_zh + '”'));
+        box.append(btn('起草这条消息', 'tl-primary', () => T.insertChinese(nx.draft_zh, '草稿', '正在翻译草稿…'), '翻译成当前客户的语言并填入输入框，确认后自己发送'));
+      }
+    }
+    const nxManual = tlIsManual(card.next) && card.next.manual;
+    if (nxManual && editing !== 'next') {
+      body.lastChild.append(btn('把这句写给客户', 'tl-primary', () => T.insertChinese(nxManual, '草稿', '正在翻译…')));
+    }
+
+    // 卡点
+    box = section(body, rec, 'blockers', '卡点');
+    if (box) {
+      const list = tlArr(card.blockers);
+      if (!list.length) box.append(el('div', 'tl-text tl-muted', '暂未发现'));
+      for (const b of list) box.append(withSrc(el('div', 'tl-text', '· ' + b.text), rec, b.src));
+    }
+
+    // 需求 + 条款 + 客户
+    box = section(body, rec, 'needs', '需求');
+    if (box) {
+      const list = tlArr(card.needs);
+      if (!list.length) box.append(el('div', 'tl-text tl-muted', '未提及'));
+      for (const n of list) box.append(withSrc(el('div', 'tl-text', '· ' + tlFieldText('needs', [n])), rec, n.src));
+    }
+    box = section(body, rec, 'terms', '条款');
+    if (box) box.append(el('div', 'tl-text' + (card.terms ? '' : ' tl-muted'), card.terms || '未提及'));
+    box = section(body, rec, 'customer', '客户');
+    if (box) box.append(el('div', 'tl-text', tlFieldText('customer', card.customer) || '未知'));
+
+    // 承诺记录
+    box = section(body, rec, 'commitments', '📌 承诺记录');
+    if (box) {
+      const list = tlArr(card.commitments);
+      const today = tlTodayStr();
+      if (!list.length) box.append(el('div', 'tl-text tl-muted', '暂无'));
+      for (const c of list) {
+        const row = withSrc(el('div', 'tl-text', `· ${c.date ? c.date + ' ' : ''}${c.who}：${c.what}`), rec, c.src);
+        if (c.due) {
+          const late = c.who === '我方' && c.due <= today;
+          row.append(el('span', 'tl-due' + (late ? ' tl-late' : ''), late ? (c.due < today ? ' 已逾期' : ' 今天到期') : ` 截止 ${c.due.slice(5)}`));
+        }
+        box.append(row);
+      }
+    }
+
+    // 报价记录
+    box = section(body, rec, 'quotes', '💰 报价记录');
+    if (box) {
+      const list = tlArr(card.quotes);
+      if (!list.length) box.append(el('div', 'tl-text tl-muted', '暂无'));
+      for (const q of list) box.append(withSrc(el('div', 'tl-text', `· ${q.date ? q.date + ' ' : ''}${q.who}${q.item ? ' ' + q.item : ''}：${q.price}`), rec, q.src));
+    }
+
+    // 缺失信息 + 一键追问
+    box = section(body, rec, 'missing', '缺失信息');
+    if (box) {
+      const list = tlArr(card.missing);
+      if (!list.length) box.append(el('div', 'tl-text tl-muted', '关键信息都已明确'));
+      for (const m of list) {
+        const row = el('div', 'tl-miss');
+        row.append(el('span', '', m.field));
+        if (m.ask_zh) row.append(btn('生成追问', 'tl-mini', () => T.insertChinese(m.ask_zh, '追问', '正在翻译追问…'), m.ask_zh));
+        box.append(row);
+      }
+    }
+  }
+
+  // ---------- AI 更新建议：逐条采纳 ----------
+  function renderSuggestions(body, rec) {
+    const sug = rec.suggestions || [];
+    if (!sug.length) return;
+    const box = el('div', 'tl-sug');
+    const h = el('div', 'tl-sec-h');
+    h.append(el('span', 'tl-label', `AI 更新建议（${sug.length}）`));
+    h.append(btn('全部采纳', 'tl-mini', () => { sug.slice().forEach(() => accept(rec, 0)); }));
+    box.append(h);
+    sug.forEach((s, i) => {
+      const row = el('div', 'tl-sug-row');
+      const locked = (rec.locked || []).includes(s.field);
+      row.append(el('b', '', TL_DEAL_LABELS[s.field] + (locked ? '（你手动改过）' : '')));
+      const oldT = tlFieldText(s.field, rec.card[s.field]) || '空';
+      const newT = tlFieldText(s.field, s.value) || '空';
+      row.append(el('div', 'tl-sug-diff', `${oldT.replace(/\n/g, '；')}  →  ${newT.replace(/\n/g, '；')}`));
+      if (s.reason) row.append(el('div', 'tl-hint', s.reason));
+      const ops = el('div', 'tl-edit-row');
+      ops.append(btn('采纳', 'tl-primary', () => accept(rec, i)), btn('忽略', 'tl-ghost', () => { sug.splice(i, 1); saveDeals(); render(); }));
+      row.append(ops);
+      box.append(row);
+    });
+    body.append(box);
+  }
+
+  function accept(rec, i) {
+    const s = rec.suggestions[i];
+    if (!s) return;
+    rec.card[s.field] = s.value;
+    rec.locked = (rec.locked || []).filter((f) => f !== s.field);
+    rec.suggestions.splice(i, 1);
+    saveDeals();
+    render();
+  }
+
+  // ---------- 摘要 ----------
+  function renderSummary(body, rec) {
+    const card = rec.card;
+    const list = tlArr(card.summary);
+    const box = el('div', 'tl-sec');
+    box.append(el('div', 'tl-label', '进展摘要'));
+    if (!list.length) box.append(el('div', 'tl-text tl-muted', '暂无'));
+    for (const x of list) box.append(el('div', 'tl-text', '· ' + x));
+    body.append(box);
+    const cm = tlIsManual(card.commitments) ? [] : tlArr(card.commitments);
+    const todo = el('div', 'tl-sec');
+    todo.append(el('div', 'tl-label', '待办'));
+    const ours = cm.filter((c) => c.who === '我方');
+    const theirs = cm.filter((c) => c.who === '客户');
+    todo.append(el('div', 'tl-text tl-strong', '我方要做'));
+    if (card.next && !tlIsManual(card.next) && card.next.owner === '我方') todo.append(el('div', 'tl-text', '· ' + card.next.action));
+    for (const c of ours) todo.append(el('div', 'tl-text', '· ' + c.what + (c.due ? `（截止 ${c.due}）` : '')));
+    todo.append(el('div', 'tl-text tl-strong', '等客户'));
+    if (!theirs.length) todo.append(el('div', 'tl-text tl-muted', '暂无'));
+    for (const c of theirs) todo.append(el('div', 'tl-text', '· ' + c.what));
+    body.append(todo);
+  }
+
+  // ---------- 调用 DeepSeek ----------
+  async function analyze(mode) {
+    const chat = T.currentChatKey();
+    if (!chat) { T.toast('请先打开一个聊天', true); return; }
+    const msgs = collectMessages();
+    if (!msgs.length) { T.toast('当前聊天里没有可分析的文字消息', true); return; }
+    let rec = deals[chat];
+    const isUpdate = mode === 'update' && rec;
+    const batch = isUpdate ? newMessages(rec, msgs).slice(-80) : msgs.slice(-80);
+    if (!batch.length) { T.toast('没有新消息'); return; }
+    const startId = isUpdate ? rec.nextId || 1 : 1;
+    const srcMap = isUpdate ? { ...(rec.srcMap || {}) } : {};
+    const payloadMsgs = batch.map((m, i) => {
+      const id = startId + i;
+      srcMap[id] = { t: m.t, who: m.out ? '我方' : '客户', text: m.text.slice(0, 200) };
+      return { id, time: m.t || null, who: m.out ? '我方' : '客户', text: m.text };
+    });
+    busy = isUpdate ? `DeepSeek 正在分析 ${batch.length} 条新消息…` : `DeepSeek 正在分析 ${batch.length} 条消息…`;
+    render();
+    const resp = await T.send({
+      type: 'deal', mode: isUpdate ? 'update' : 'full', today: tlTodayStr(), title: T.headerName(),
+      messages: payloadMsgs, card: isUpdate ? rec.card : undefined, locked: isUpdate ? rec.locked : undefined
+    });
+    busy = '';
+    if (!resp.ok) { render(); T.toast(resp.error, true); return; }
+    const card = resp.card;
+    const last = batch[batch.length - 1];
+    const usedIds = new Set(JSON.stringify(card).match(/"src":\[[^\]]*\]/g)?.join(',').match(/\d+/g) || []);
+    if (!isUpdate) {
+      for (const k of Object.keys(srcMap)) if (!usedIds.has(String(k))) delete srcMap[k];
+      rec = deals[chat] = { title: T.headerName(), card, locked: [], suggestions: [], srcMap, nextId: startId + batch.length, createdAt: Date.now() };
+    } else {
+      const changed = Array.isArray(card.changed) ? card.changed : [];
+      const sug = [];
+      for (const c of changed) {
+        const f = c && c.field;
+        if (!TL_DEAL_FIELDS.includes(f) || !(f in card)) continue;
+        if (JSON.stringify(card[f]) === JSON.stringify(rec.card[f])) continue;
+        sug.push({ field: f, value: card[f], reason: c.reason || '' });
+      }
+      // 同一字段只保留最新建议
+      const keep = (rec.suggestions || []).filter((s) => !sug.some((n) => n.field === s.field));
+      rec.suggestions = [...keep, ...sug];
+      if (Array.isArray(card.summary)) rec.card.summary = card.summary;
+      rec.srcMap = srcMap;
+      rec.nextId = startId + batch.length;
+      if (!sug.length) T.toast('已分析新消息，作战卡无需改动');
+    }
+    rec.title = T.headerName() || rec.title;
+    rec.analyzedAt = Date.now();
+    rec.lastSig = last.sig;
+    rec.lastTs = Math.max(rec.lastTs || 0, ...batch.map((m) => m.ts));
+    updateActivity(rec, msgs);
+    rec.pending = 0;
+    tab = 'card';
+    saveDeals();
+    render();
+    refreshBadge();
+  }
+
+  window.__tradelingoDeal = { parseMeta, maskPhones, collectMessages, openPanel, analyze, deals: () => deals };
+})();

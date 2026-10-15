@@ -1,5 +1,11 @@
 # Changelog / 更新记录
 
+## 0.6.0
+- New: **deal battle card** (DeepSeek only; translation settings unchanged). Heat with evidence, stage, estimated value, blockers, next step with one-click draft, commitments, price history, missing info with one-click follow-up questions, chat summary. Source messages shown on hover; phone numbers masked before sending.
+- Incremental updates send only new messages; AI changes appear as suggestions (accept / ignore / accept all); hand-edited fields are locked. Red dot on the toolbar button when a chat has unanalysed messages (no API call).
+- New: **Today's follow-up** page ranked by value × heat × urgency, computed locally; CSV export for Excel.
+- 新增 **商机作战卡**（只用 DeepSeek，翻译设置不变）与 **今日跟进**；增量更新只发新消息，AI 改动需逐条采纳，手动修改的字段锁定；支持复制到 Excel、导出 CSV。
+
 ## 0.5.0
 - Renamed to **TradeLingo** and open-sourced under the MIT License. Added icons. Settings are kept (storage keys unchanged).
 - 项目更名为 **TradeLingo**，以 MIT 许可证开源；新增图标。存储键未改动，原有设置保留。

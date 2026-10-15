@@ -1,8 +1,8 @@
 // TradeLingo — 注入 WhatsApp Web：自动翻译消息 + 输入框一键翻译
-// v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
+// v0.6.0：新增商机作战卡（DeepSeek）与今日跟进；v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
 (() => {
   'use strict';
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   console.info(`[TradeLingo] v${VERSION} 已加载`);
 
   let settings = { ...WADL_DEFAULTS };
@@ -673,25 +673,31 @@
     positionFloating();
   }
 
-  async function insertPhrase(p) {
-    closePhrases();
+  // 把一段中文翻译成当前客户的语言并填入输入框（话术、商机卡的起草/追问共用）
+  async function insertChinese(text, label, loadingText) {
     const input = getInput();
-    if (!input) return;
+    if (!input) { toast('没有找到输入框，请先打开一个聊天', true); return false; }
     const target = currentTarget().lang;
-    if (target.startsWith('ZH')) { await replaceInput(input, p.text); return; }
+    if (target.startsWith('ZH')) { await replaceInput(input, text); return true; }
     backSeq++;
-    back = { forText: '', label: '话术', text: `正在翻译“${p.key}”…`, state: 'loading' };
+    back = { forText: '', label, text: loadingText || '正在翻译…', state: 'loading' };
     renderBack();
-    const resp = await send({ type: 'translate', texts: [p.text], target, direction: 'outgoing' });
-    if (!resp.ok) { await replaceInput(input, p.text); back = null; renderBack(); toast(resp.error, true); return; }
+    const resp = await send({ type: 'translate', texts: [text], target, direction: 'outgoing' });
+    if (!resp.ok) { await replaceInput(input, text); back = null; renderBack(); toast(resp.error, true); return false; }
     if (resp.note) toast(resp.note);
     const out = resp.results[0].text;
     await replaceInput(input, out);
-    lastOriginal = p.text;
+    lastOriginal = text;
     backSeq++;
-    back = { forText: norm(out), label: '话术原文', text: p.text, state: 'ok' };
+    back = { forText: norm(out), label: label + '原文', text, state: 'ok' };
     renderBack();
     updateBar();
+    return true;
+  }
+
+  async function insertPhrase(p) {
+    closePhrases();
+    await insertChinese(p.text, '话术', `正在翻译“${p.key}”…`);
   }
 
   // 监听输入框：内容以 / 开头时弹出话术
@@ -971,4 +977,11 @@
     scan();
     updateBar();
   });
+
+  // 供 deal.js（商机功能）调用的内部接口
+  window.__tradelingo = {
+    bar, send, toast, norm, findMessages, isOutgoing, currentChatKey, headerName, getInput,
+    insertChinese, currentTarget, updateBar,
+    settings: () => settings
+  };
 })();

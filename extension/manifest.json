@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TradeLingo — Translator for WhatsApp Web",
   "short_name": "TradeLingo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Translate WhatsApp Web chats with DeepL, Qwen-MT or DeepSeek. Not affiliated with WhatsApp or Meta.",
   "permissions": [
     "storage"
@@ -25,7 +25,9 @@
       ],
       "js": [
         "common.js",
-        "content.js"
+        "dealcore.js",
+        "content.js",
+        "deal.js"
       ],
       "css": [
         "content.css"

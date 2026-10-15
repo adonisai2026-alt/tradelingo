@@ -20,6 +20,8 @@ Read every customer message in your own language, write replies in your language
 - **Quick phrases.** Type <kbd>/</kbd> plus a keyword to insert a saved phrase, translated into the current customer's language. The sample phrases use Chinese keywords such as `/交期` (lead time); edit them in the settings page.
 - **Glossary.** Force your own terminology (for example `MCCB = moulded case circuit breaker`) for the AI engines.
 - **Three engines with automatic fallback.** DeepL, Qwen-MT (Alibaba Cloud Model Studio) and DeepSeek. If one fails (invalid key, quota, outage), TradeLingo switches to the next engine that has a key.
+- **Deal battle card (DeepSeek).** Click **单** on the toolbar to turn the current chat into a one-screen battle card: heat with evidence, stage, estimated deal value, blockers, the next step with a one-click draft message, commitments made by both sides, the price history, and missing information with one-click follow-up questions. Every item links to the messages it came from; unknowns stay "unknown". Later updates send only new messages, and AI changes are shown as suggestions you accept or ignore. Fields you edit by hand are locked.
+- **Today's follow-up.** All battle cards ranked by estimated value × heat × urgency (overdue promises, customers waiting for your reply, silent customers), computed locally with no API cost. Export to Excel (CSV).
 - **More than 30 target languages**, including Bengali, Kazakh, Uzbek, Hindi, Urdu, Persian, Vietnamese, Thai, Malay and Filipino through the AI engines.
 
 The user interface is currently in **Simplified Chinese**. Contributions for other UI languages are welcome.
@@ -30,7 +32,7 @@ The user interface is currently in **Simplified Chinese**. Contributions for oth
 |---|---|---|---|
 | DeepL | Incoming messages | Fast and stable; free plan includes 500,000 characters per month | deepl.com → Account → API Keys |
 | Qwen-MT | Outgoing replies | Dedicated translation model, 92 languages, glossary (term intervention), very low cost | Alibaba Cloud Model Studio (Bailian) → API Key |
-| DeepSeek | Fallback | Uses recent chat context, adjustable tone | platform.deepseek.com → API Keys |
+| DeepSeek | Fallback for translation; **the only engine used for deal battle cards** | Uses recent chat context, adjustable tone | platform.deepseek.com → API Keys |
 
 At least one key is required. Keys are stored only in your browser (`chrome.storage.local`).
 
@@ -52,6 +54,10 @@ To update, replace the files in the same folder, click ⟳ on the extension card
 |---|---|
 | ![Back-translation](docs/screenshots/back-translation.webp) | ![Quick phrases](docs/screenshots/quick-phrases.webp) |
 
+| Deal battle card | Today's follow-up |
+|---|---|
+| ![Deal battle card](docs/screenshots/deal-card.webp) | ![Today's follow-up](docs/screenshots/todays-follow-up.webp) |
+
 | Per-chat language memory | AI engines for languages DeepL does not support |
 |---|---|
 | ![Per-chat language](docs/screenshots/per-chat-language.webp) | ![AI languages](docs/screenshots/ai-languages.webp) |
@@ -72,6 +78,7 @@ A full illustrated manual (Simplified Chinese) is in [`docs/manual.zh-CN.html`](
 - Message text is sent only to the translation provider you choose (DeepL, Alibaba Cloud or DeepSeek), directly from your browser. There is no TradeLingo server.
 - API keys, glossary, phrases and per-chat languages are stored locally in your browser.
 - Per-chat language records store only a hash of the chat ID, never phone numbers.
+- Deal battle cards send up to the last 80 visible messages of the open chat to DeepSeek, only when you click; phone numbers are masked first. Cards are stored locally.
 
 See [PRIVACY.md](PRIVACY.md) for details.
 
@@ -88,6 +95,9 @@ extension/        Chrome extension (Manifest V3) — load this folder
   manifest.json
   background.js   Calls DeepL / Qwen-MT / DeepSeek, cache, fallback
   content.js      Runs on WhatsApp Web: translations, toolbar, back-translation, phrases, per-chat language
+  deal.js         Deal battle card panel (DeepSeek)
+  dealcore.js     Shared deal logic: ranking, text and CSV export
+  deals.html/js   Today's follow-up page
   content.css
   options.html/js Settings page
   common.js       Shared defaults and language list

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今日跟进 · TradeLingo</title>
+<style>
+  :root { --bg: #f5f8f7; --card: #fff; --ink: #15302b; --ink2: #5b6a72; --line: #dfe7e4; --accent: #00866a; --hot: #c2410c; --late: #b42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0f1715; --card: #16211e; --ink: #e3ece9; --ink2: #a3b5b0; --line: #26352f; --accent: #3fcfa6; --hot: #fcc58b; --late: #ffb4ab; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 60px; }
+  header { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 { margin: 0; font-size: 26px; font-weight: 800; }
+  .sub { color: var(--ink2); margin: 2px 0 0; }
+  .grow { flex: 1; }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; padding: 6px 12px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filters button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: r; }
+  li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 12px; counter-increment: r; }
+  li::before { content: counter(r); grid-row: span 3; font: 700 18px/1.4 ui-monospace, Consolas, monospace; color: var(--accent); }
+  .name { font-weight: 700; font-size: 15px; }
+  .meta { color: var(--ink2); font-size: 13px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; align-self: start; }
+  .chip { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+  .chip.hot { color: var(--hot); border-color: currentColor; }
+  .why { grid-column: 2 / 4; display: flex; gap: 6px; flex-wrap: wrap; }
+  .why span { font-size: 12.5px; padding: 1px 8px; border-radius: 6px; background: var(--bg); }
+  .why span.late { color: var(--late); font-weight: 700; }
+  .next { grid-column: 2 / 4; font-size: 13.5px; }
+  .next b { color: var(--accent); }
+  .row-ops { grid-column: 2 / 4; display: flex; gap: 6px; justify-content: flex-end; }
+  .row-ops button { padding: 2px 10px; font-size: 12px; }
+  .empty { background: var(--card); border: 1px dashed var(--line); border-radius: 12px; padding: 28px; color: var(--ink2); text-align: center; }
+  .note { color: var(--ink2); font-size: 12px; margin-top: 18px; }
+  @media (max-width: 640px) { li { grid-template-columns: 26px minmax(0, 1fr); } .chips { justify-content: flex-start; grid-column: 2; } .why, .next, .row-ops { grid-column: 2; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>今日跟进</h1>
+      <p class="sub" id="sub">按 预估金额 × 热度 × 紧急度 排序，全部在本地计算，不消耗 Token。</p>
+    </div>
+    <div class="grow"></div>
+    <button id="exportCsv" class="primary">导出 Excel（CSV）</button>
+  </header>
+  <div class="filters" id="filters"></div>
+  <ol id="list"></ol>
+  <p class="note">提示：在 WhatsApp 中打开某个客户的聊天，点工具条上的“单”可以生成或更新作战卡。热度和金额是 AI 的估计，以聊天原文为准。</p>
+</div>
+<script src="common.js"></script>
+<script src="dealcore.js"></script>
+<script src="deals.js"></script>
+</body>
+</html>

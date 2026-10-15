@@ -20,6 +20,8 @@
 - **快捷话术**：输入 <kbd>/</kbd> 加关键词（如 `/报价`、`/交期`），插入预先保存的中文话术，并自动翻译成当前客户的语言。
 - **术语表**：让 AI 引擎固定使用你指定的译法，例如 `塑壳断路器 = MCCB`。
 - **三个引擎，出错时自动备用**：支持 DeepL、Qwen-MT（阿里云百炼）、DeepSeek。某个引擎出错（Key 无效、额度用完、服务故障）时，自动改用下一个已填写 Key 的引擎。
+- **商机作战卡（DeepSeek）**：点工具条上的“单”，把当前聊天整理成一屏作战卡：热度及判断依据、阶段、预估金额、卡点、下一步（一键起草消息）、双方承诺、报价记录、缺失信息（一键生成追问）。每一项都能查看出自哪条消息，没有依据的写“未知”。之后更新时只发送新消息，AI 的改动以建议形式出现，由你逐条采纳或忽略；你手动改过的字段会被锁定。
+- **今日跟进**：所有客户的作战卡按“预估金额 × 热度 × 紧急度”排序。紧急度包括承诺到期、客户在等你回复、客户沉默等，全部在本地计算，不消耗 Token；支持导出 Excel（CSV）。
 - **30 多种目标语言**：其中孟加拉语、哈萨克语、乌兹别克语、印地语、乌尔都语、波斯语、越南语、泰语、马来语、菲律宾语通过 AI 引擎翻译。
 
 ## 引擎
@@ -28,7 +30,7 @@
 |---|---|---|---|
 | DeepL | 收到的消息 | 快、稳定；免费版每月 50 万字符 | deepl.com → 账户 → API Keys |
 | Qwen-MT | 发送的回复 | 专用翻译模型，92 种语言，支持术语干预，费用很低 | 阿里云百炼 → API Key（地域推荐华北2（北京）） |
-| DeepSeek | 备用 | 能参考聊天上下文，可以调整语气 | platform.deepseek.com → API Keys |
+| DeepSeek | 翻译备用；**商机作战卡只用它** | 能参考聊天上下文，可以调整语气 | platform.deepseek.com → API Keys |
 
 至少需要填写一个 Key。所有 Key 只保存在你自己的浏览器里（`chrome.storage.local`）。
 
@@ -50,6 +52,10 @@
 |---|---|
 | ![回译](docs/screenshots/back-translation.webp) | ![快捷话术](docs/screenshots/quick-phrases.webp) |
 
+| 商机作战卡 | 今日跟进 |
+|---|---|
+| ![商机作战卡](docs/screenshots/deal-card.webp) | ![今日跟进](docs/screenshots/todays-follow-up.webp) |
+
 | 每个客户单独记住语言 | DeepL 不支持的语言由 AI 引擎翻译 |
 |---|---|
 | ![按客户记住语言](docs/screenshots/per-chat-language.webp) | ![AI 翻译小语种](docs/screenshots/ai-languages.webp) |
@@ -70,6 +76,7 @@
 - 消息内容只会从你的浏览器直接发送给你选择的翻译服务商（DeepL、阿里云或 DeepSeek）。TradeLingo 没有自己的服务器。
 - API Key、术语表、话术和客户语言记录都只保存在你的浏览器里。
 - 客户语言记录只保存聊天编号的哈希值，不保存电话号码。
+- 商机作战卡只在你点击时，把当前聊天最近最多 80 条可见消息发给 DeepSeek，电话号码会先打码；作战卡保存在本地。
 
 详见 [PRIVACY.md](PRIVACY.md)。
 
@@ -86,6 +93,9 @@ extension/        Chrome 插件（Manifest V3），加载这个文件夹
   manifest.json
   background.js   调用 DeepL / Qwen-MT / DeepSeek，缓存与自动备用
   content.js      运行在 WhatsApp 网页版：译文、工具条、回译、话术、按客户记住语言
+  deal.js         商机作战卡面板（DeepSeek）
+  dealcore.js     商机共用逻辑：排序、文字与 CSV 导出
+  deals.html/js   今日跟进页
   content.css
   options.html/js 设置页
   common.js       共享默认设置和语言列表

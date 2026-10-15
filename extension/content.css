@@ -1,0 +1,142 @@
+/* 消息下方的译文 */
+.wadl-tr {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.18);
+  font-size: 0.92em;
+  line-height: 1.4;
+  color: #0b6e4f;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+.wadl-tr.wadl-loading { color: #8a8a8a; font-style: italic; }
+.wadl-tr.wadl-err { color: #c0392b; cursor: pointer; }
+.dark .wadl-tr { color: #7fd9b4; border-top-color: rgba(255, 255, 255, 0.2); }
+.dark .wadl-tr.wadl-loading { color: #9aa0a6; }
+.dark .wadl-tr.wadl-err { color: #ff8a80; }
+
+/* 译文后的引擎标签和"换引擎重译"按钮 */
+.wadl-meta { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.wadl-tag { font-size: 10px; font-style: normal; line-height: 1; padding: 2px 4px; border-radius: 4px; background: #e8f0fe; color: #1a56c4; }
+.wadl-tag-deepseek { background: #f1e8fd; color: #6b2fc7; }
+.wadl-tag-qwen { background: #fff1e0; color: #b45309; }
+.wadl-swap { border: none; background: transparent; color: #8a8a8a; font-size: 12px; line-height: 1; padding: 1px 3px; border-radius: 4px; cursor: pointer; }
+.wadl-swap:hover { background: rgba(0, 0, 0, 0.08); color: #333; }
+.dark .wadl-tag { background: #1d3557; color: #9ec5ff; }
+.dark .wadl-tag-deepseek { background: #3b2560; color: #d2b6ff; }
+.dark .wadl-tag-qwen { background: #4a2e0c; color: #fcc58b; }
+.dark .wadl-swap:hover { background: rgba(255, 255, 255, 0.12); color: #e9edef; }
+
+/* 输入框上方的悬浮工具条 */
+#wadl-bar {
+  position: fixed;
+  z-index: 9999;
+  display: none;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  font: 13px/1.2 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+#wadl-bar select {
+  max-width: 150px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+}
+#wadl-bar button {
+  flex: none;
+  white-space: nowrap;
+  line-height: 1.2;
+  border: none;
+  border-radius: 12px;
+  padding: 4px 10px;
+  background: #00a884;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+#wadl-bar button:hover { background: #008f70; }
+#wadl-bar button.wadl-undo { background: #e9edef; color: #333; font-weight: 400; }
+#wadl-bar button.wadl-eng { background: #e8f0fe; color: #1a56c4; padding: 4px 8px; }
+#wadl-bar button.wadl-eng.wadl-eng-ai { background: #f1e8fd; color: #6b2fc7; }
+#wadl-bar button.wadl-eng.wadl-eng-qwen { background: #fff1e0; color: #b45309; }
+.dark #wadl-bar { background: #202c33; }
+.dark #wadl-bar select { color: #e9edef; }
+.dark #wadl-bar select option { background: #202c33; }
+.dark #wadl-bar button.wadl-undo { background: #2a3942; color: #e9edef; }
+.dark #wadl-bar button.wadl-eng { background: #1d3557; color: #9ec5ff; }
+.dark #wadl-bar button.wadl-eng.wadl-eng-ai { background: #3b2560; color: #d2b6ff; }
+.dark #wadl-bar button.wadl-eng.wadl-eng-qwen { background: #4a2e0c; color: #fcc58b; }
+
+/* 工具条上的语言模式标签 */
+#wadl-bar .wadl-mode { font-size: 10px; padding: 1px 5px; border-radius: 4px; background: #e9edef; color: #54656f; white-space: nowrap; }
+#wadl-bar .wadl-mode-auto { background: #d9fdd3; color: #0b6e4f; }
+#wadl-bar .wadl-mode-manual { background: #fff1e0; color: #b45309; }
+#wadl-bar button.wadl-ph { background: #e9edef; color: #333; padding: 4px 8px; font-weight: 400; }
+.dark #wadl-bar .wadl-mode { background: #2a3942; color: #aebac1; }
+.dark #wadl-bar .wadl-mode-auto { background: #103529; color: #7fd9b4; }
+.dark #wadl-bar .wadl-mode-manual { background: #4a2e0c; color: #fcc58b; }
+.dark #wadl-bar button.wadl-ph { background: #2a3942; color: #e9edef; }
+
+/* 回译框 */
+#wadl-back {
+  position: fixed; z-index: 9999; display: none; align-items: flex-start; gap: 6px;
+  padding: 6px 8px 6px 10px; border-radius: 10px; background: #fffbe6; border: 1px solid #f3e3a1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  font: 13px/1.45 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; color: #3b3b3b;
+}
+#wadl-back .wadl-back-label { color: #8a6d00; font-weight: 600; white-space: nowrap; }
+#wadl-back .wadl-back-text { flex: 1; white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto; }
+#wadl-back button { border: none; background: transparent; color: #8a8a8a; cursor: pointer; font-size: 13px; padding: 0 3px; line-height: 1.45; }
+#wadl-back button:hover { color: #333; }
+#wadl-back.wadl-loading .wadl-back-text { color: #8a8a8a; font-style: italic; }
+#wadl-back.wadl-err { background: #fdecea; border-color: #f5c6c0; }
+#wadl-back.wadl-err .wadl-back-text { color: #c0392b; }
+#wadl-back.wadl-stale { opacity: 0.6; }
+#wadl-back.wadl-stale .wadl-back-label::after { content: '（已修改）'; font-weight: 400; }
+.dark #wadl-back { background: #2b2a1f; border-color: #5a4f1c; color: #e9edef; }
+.dark #wadl-back .wadl-back-label { color: #e8c547; }
+
+/* 快捷话术菜单 */
+#wadl-phrases {
+  position: fixed; z-index: 10000; display: none; max-height: 320px; overflow: auto;
+  background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2); padding: 4px 0;
+  font: 13px/1.4 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; color: #1f2933;
+}
+#wadl-phrases .wadl-ph-head { padding: 4px 12px 6px; font-size: 11px; color: #8a8a8a; border-bottom: 1px solid #eef0f1; }
+#wadl-phrases .wadl-ph-item { display: flex; gap: 10px; padding: 6px 12px; cursor: pointer; }
+#wadl-phrases .wadl-ph-item b { flex: 0 0 auto; min-width: 40px; color: #00a884; font-weight: 600; }
+#wadl-phrases .wadl-ph-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #3b4a54; }
+#wadl-phrases .wadl-ph-item.wadl-active { background: #e7f8f3; }
+.dark #wadl-phrases { background: #233138; color: #e9edef; }
+.dark #wadl-phrases .wadl-ph-head { border-bottom-color: #2f3e46; }
+.dark #wadl-phrases .wadl-ph-item span { color: #d1d7db; }
+.dark #wadl-phrases .wadl-ph-item.wadl-active { background: #2a3942; }
+
+/* 提示条 */
+#wadl-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%);
+  z-index: 10000;
+  max-width: 80vw;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(32, 44, 51, 0.92);
+  color: #fff;
+  font: 13px/1.4 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+#wadl-toast.wadl-show { opacity: 1; }
+#wadl-toast.wadl-err { background: rgba(192, 57, 43, 0.95); }

@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Packaged builds
+*.zip
+*.crx
+*.pem
+
+# Never commit API keys or local test data
+*.key
+.env

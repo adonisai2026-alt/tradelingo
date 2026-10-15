@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "TradeLingo — Translator for WhatsApp Web",
+  "short_name": "TradeLingo",
+  "version": "0.5.0",
+  "description": "Translate WhatsApp Web chats with DeepL, Qwen-MT or DeepSeek. Not affiliated with WhatsApp or Meta.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.deepl.com/*",
+    "https://api-free.deepl.com/*",
+    "https://api.deepseek.com/*",
+    "https://dashscope.aliyuncs.com/*",
+    "https://dashscope-intl.aliyuncs.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://web.whatsapp.com/*",
+        "https://*.whatsapp.com/*"
+      ],
+      "js": [
+        "common.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "options.html",
+    "default_title": "TradeLingo 设置",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

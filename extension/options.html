@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>TradeLingo 设置</title>
+<style>
+  body { margin: 0; width: 400px; font: 13px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; color: #1f2933; background: #f7f9fa; }
+  body.page { width: auto; }
+  .wrap { padding: 14px 16px; max-width: 560px; }
+  h1 { font-size: 16px; margin: 0 0 12px; color: #00a884; }
+  .card { background: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .title { font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 4px; }
+  .b-deepl { background: #e8f0fe; color: #1a56c4; }
+  .b-ai { background: #f1e8fd; color: #6b2fc7; }
+  .b-qwen { background: #fff1e0; color: #b45309; }
+  label.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+  label.check { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
+  input[type=password], input[type=text] { flex: 1; padding: 6px 8px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; min-width: 0; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 80px; padding: 6px 8px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; resize: vertical; }
+  select { padding: 5px 6px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; background: #fff; max-width: 210px; }
+  button { padding: 6px 12px; border: none; border-radius: 6px; background: #00a884; color: #fff; font: inherit; cursor: pointer; }
+  button.secondary { background: #e9edef; color: #333; }
+  .key-row { display: flex; gap: 6px; align-items: center; }
+  .key-row > span { white-space: nowrap; }
+  .key-row + .key-row { margin-top: 8px; }
+  .hint { color: #6b7780; font-size: 12px; margin: 4px 0 0; }
+  .status { min-height: 18px; margin-top: 6px; font-size: 12px; word-break: break-all; }
+  .ok { color: #0b6e4f; } .err { color: #c0392b; }
+  .sub { font-size: 12px; color: #6b7780; font-weight: 600; margin: 10px 0 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TradeLingo <span style="font-weight:400;font-size:12px;color:#6b7780">Translator for WhatsApp Web · v0.5.0</span></h1>
+
+  <div class="card">
+    <div class="title">DeepL API Key <span class="badge b-deepl">DeepL</span></div>
+    <div class="key-row">
+      <input id="apiKey" type="password" placeholder="粘贴 DeepL API Key" autocomplete="off">
+      <button class="secondary toggle" data-for="apiKey" title="显示/隐藏">👁</button>
+      <button id="testDeepl">保存并测试</button>
+    </div>
+    <div id="statusDeepl" class="status"></div>
+    <p class="hint">免费版 Key 以 “:fx” 结尾，插件会自动选择对应的接口地址。</p>
+  </div>
+
+  <div class="card">
+    <div class="title">Qwen-MT API Key <span class="badge b-qwen">Qwen</span></div>
+    <div class="key-row">
+      <input id="qwenKey" type="password" placeholder="阿里云百炼 sk-…" autocomplete="off">
+      <button class="secondary toggle" data-for="qwenKey" title="显示/隐藏">👁</button>
+      <button id="testQwen">保存并测试</button>
+    </div>
+    <div class="key-row">
+      <span>模型</span>
+      <select id="qwenModel" style="flex:1;max-width:none"></select>
+    </div>
+    <div class="key-row">
+      <span>地域</span>
+      <select id="qwenRegion" style="flex:1;max-width:none">
+        <option value="beijing">华北2（北京）— 推荐，价格最低</option>
+        <option value="intl">新加坡（国际）</option>
+      </select>
+    </div>
+    <div id="statusQwen" class="status"></div>
+    <p class="hint">专用翻译模型，支持 92 种语言（含孟加拉语、哈萨克语、乌兹别克语）。术语表会自动作为“术语干预”传给 Qwen-MT。Key 与地域绑定，请选择创建 Key 时所在的地域。</p>
+  </div>
+
+  <div class="card">
+    <div class="title">DeepSeek API Key <span class="badge b-ai">AI</span></div>
+    <div class="key-row">
+      <input id="deepseekKey" type="password" placeholder="sk-…" autocomplete="off">
+      <button class="secondary toggle" data-for="deepseekKey" title="显示/隐藏">👁</button>
+      <button id="testDeepseek">保存并测试</button>
+    </div>
+    <div class="key-row">
+      <span>模型</span>
+      <select id="deepseekModel" style="flex:1;max-width:none"></select>
+    </div>
+    <div id="statusDeepseek" class="status"></div>
+    <p class="hint">在 platform.deepseek.com 创建 Key（按用量计费，需要先充值）。翻译建议用 deepseek-flash；插件已关闭“思考模式”，响应更快。</p>
+  </div>
+
+  <div class="card">
+    <label class="check"><input type="checkbox" id="enabled"> 启用插件</label>
+    <label class="check"><input type="checkbox" id="autoIncoming"> 自动翻译收到的消息</label>
+    <label class="check"><input type="checkbox" id="translateOwn"> 同时翻译我发出的消息（便于核对译文）</label>
+    <label class="check"><input type="checkbox" id="autoChatLang"> 按聊天自动识别客户语言（每个客户单独记住）</label>
+    <label class="check"><input type="checkbox" id="backTranslate"> 翻译后显示回译（把译文翻回中文核对）</label>
+
+    <div class="sub">收到的消息</div>
+    <label class="row">翻译引擎 <select id="incomingEngine" class="engine"></select></label>
+    <label class="row">译成 <select id="incomingTarget" class="lang"></select></label>
+
+    <div class="sub">发送的回复</div>
+    <label class="row">翻译引擎 <select id="outgoingEngine" class="engine"></select></label>
+    <label class="row">默认译成 <select id="outgoingTarget" class="lang"></select></label>
+    <label class="row">语气
+      <select id="formality">
+        <option value="default">自然</option>
+        <option value="prefer_more">正式商务</option>
+        <option value="prefer_less">友好简洁</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="useContext"> DeepSeek 翻译时参考最近 8 条聊天（Qwen-MT 不支持上下文）</label>
+    <p class="hint">标有“（AI）”的语言 DeepL 不支持，会自动改用 Qwen-MT 或 DeepSeek。一个引擎出错时，插件会按 Qwen-MT → DeepL → DeepSeek 的顺序自动改用其他已填 Key 的引擎。</p>
+  </div>
+
+  <div class="card">
+    <div class="title">术语表 <span class="badge b-qwen">Qwen</span> <span class="badge b-ai">AI</span></div>
+    <textarea id="glossary" placeholder="每行一条，例如：&#10;断路器 = circuit breaker&#10;交期 = lead time&#10;塑壳断路器 = MCCB"></textarea>
+    <p class="hint">Qwen-MT 和 DeepSeek 翻译时都会使用这些译法，保证专业用词统一。格式：每行“原文 = 译文”。</p>
+  </div>
+
+  <div class="card">
+    <div class="title">快捷话术</div>
+    <textarea id="phrases" style="min-height:160px" placeholder="每行一条：关键词 | 中文内容"></textarea>
+    <p class="hint">在 WhatsApp 输入框输入 <b>/</b> 加关键词（如 <b>/报价</b>），按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
+  </div>
+
+  <div class="card">
+    <button id="clearCache" class="secondary">清空翻译缓存</button>
+    <span id="statusCache" class="status"></span>
+    <p class="hint">已翻译过的内容会缓存在本地，重复出现时不再消耗额度。</p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

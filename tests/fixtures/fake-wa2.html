@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;font:14px sans-serif;height:100vh;display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column}header{background:#f0f2f5;padding:10px}#msgs{flex:1;padding:20px;display:flex;flex-direction:column}
+.b{max-width:60%;padding:6px 10px;margin:4px 0;border-radius:8px;background:#fff}.b.me{align-self:flex-end;background:#d9fdd3}
+footer{padding:10px}footer div[contenteditable]{background:#fff;padding:9px;border:1px solid #ccc}
+</style></head><body><div id="main"><header><div><span dir="auto">联系人</span></div><div><span dir="auto" class="st">在线</span></div></header><div id="msgs"></div>
+<footer><div contenteditable="true" role="textbox"></div></footer></div>
+<script>
+// mode 'jid'：data-id 含聊天 ID、无 message-in/out 类；mode 'nojid'：data-id 不含聊天 ID，只能靠顶部名称识别聊天、靠勾号/位置判断方向
+window.setChat = (name, msgs, mode) => {
+  document.querySelector('header span[dir="auto"]').textContent = name;
+  const box = document.getElementById('msgs'); box.innerHTML = '';
+  msgs.forEach(([out, t], i) => {
+    const id = mode === 'jid' ? `${out ? 'true' : 'false'}_${name.length}77${name.charCodeAt(0)}@c.us_3EB0${i}AAAA` : `3EB0${name.length}${i}ABCDEF`;
+    box.insertAdjacentHTML('beforeend', `<div role="row"><div data-id="${id}" class="b ${out ? 'me' : ''}"><div data-pre-plain-text="x"><span class="selectable-text" dir="auto"><span>${t}</span></span></div>${out ? '<span data-icon="msg-dblcheck"></span>' : ''}</div></div>`);
+  });
+};
+window.setStatus = (t) => { document.querySelector('header .st').textContent = t; };
+</script></body></html>

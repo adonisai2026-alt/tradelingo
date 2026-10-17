@@ -12,3 +12,6 @@ Thumbs.db
 # Never commit API keys or local test data
 *.key
 .env
+
+node_modules/
+tests/node_modules

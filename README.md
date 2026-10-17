@@ -112,7 +112,8 @@ extension/        Chrome extension (Manifest V3) — load this folder
   notion.js       Notion sync (deal cards → Notion database)
   i18n.js         Interface language (Chinese / English) and the English dictionary
   icons/
-docs/             Screenshots, logo, illustrated manual
+docs/             Website, screenshots, logo, illustrated manual
+tests/            Automated tests (Playwright with simulated WhatsApp pages): cd tests && npm install && node run-all.js
 ```
 
 No build step and no dependencies.

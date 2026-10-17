@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;height:100vh;display:flex;font:14px "Segoe UI","Microsoft YaHei",sans-serif;background:#efeae2}
+#side{width:260px;background:#fff}#main{flex:1;display:flex;flex-direction:column;min-width:0}
+header{height:56px;background:#f0f2f5;display:flex;align-items:center;padding:0 16px}#msgs{flex:1;padding:16px 40px;overflow:auto;display:flex;flex-direction:column}
+.message-in,.message-out{max-width:60%;padding:6px 9px;margin:3px 0;border-radius:8px;background:#fff}.message-out{align-self:flex-end;background:#d9fdd3}
+footer{background:#f0f2f5;padding:8px 16px}footer div[contenteditable]{background:#fff;padding:9px 12px;border-radius:8px;min-height:20px}
+</style></head><body><div id="side"></div><div id="main"><header><span dir="auto">Ahmed · Al Noor Electrical</span></header><div id="msgs"></div><footer><div contenteditable="true" role="textbox"></div></footer></div>
+<script>
+let n=0;
+window.addMsg=(out,date,time,text)=>{const box=document.getElementById('msgs');box.insertAdjacentHTML('beforeend',`<div role="row"><div data-id="${out?'true':'false'}_971000000001@c.us_M${n++}"><div class="${out?'message-out':'message-in'}"><div data-pre-plain-text="[${time}, ${date}] ${out?'我':'Ahmed'}: "><span class="selectable-text" dir="auto"><span>${text}</span></span></div></div></div></div>`);};
+</script></body></html>

@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;font:14px sans-serif;background:#efeae2;height:100vh;display:flex;flex-direction:column}
+#main{flex:1;display:flex;flex-direction:column} header{background:#f0f2f5;padding:10px} #msgs{flex:1;padding:20px;overflow:auto}
+.message-in,.message-out{margin:6px 0;max-width:60%;padding:6px 10px;border-radius:8px;background:#fff}.message-out{margin-left:auto;background:#d9fdd3}
+footer{background:#f0f2f5;padding:10px 20px}footer div[contenteditable]{background:#fff;padding:9px;border-radius:8px;min-height:20px}
+</style></head><body><div id="main"><header><span dir="auto" title="Ahmed">Ahmed</span></header><div id="msgs"></div>
+<footer><div contenteditable="true" role="textbox" data-tab="10"></div></footer></div>
+<script>
+window.sentLog=[];
+document.querySelector('footer [contenteditable]').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sentLog.push(e.target.innerText);e.target.innerText='';}});
+window.setChat=(chat,msgs)=>{const box=document.getElementById('msgs');box.innerHTML='';msgs.forEach(([out,t],i)=>{const row=document.createElement('div');row.setAttribute('role','row');
+ row.innerHTML=`<div data-id="${out?'true':'false'}_${chat}@c.us_MSG${i}"><div class="${out?'message-out':'message-in'}"><div data-pre-plain-text="[10:0${i}] x: "><span class="selectable-text copyable-text" dir="auto"><span>${t}</span></span></div></div></div>`;box.appendChild(row);});};
+</script></body></html>

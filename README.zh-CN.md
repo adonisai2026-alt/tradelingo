@@ -112,6 +112,7 @@ extension/        Chrome 插件（Manifest V3），加载这个文件夹
   i18n.js         界面语言（中文 / English）与英文词典
   icons/
 docs/             截图、图标、图文手册
+tests/            自动测试（Playwright + 模拟的 WhatsApp 页面）：cd tests && npm install && node run-all.js
 ```
 
 无需构建，没有第三方依赖。

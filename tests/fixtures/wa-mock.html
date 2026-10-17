@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;height:100vh;display:flex;font:14.2px/1.4 "Segoe UI","Microsoft YaHei",sans-serif;background:#eae6df;color:#111b21}
+#side{width:300px;background:#fff;border-right:1px solid #e9edef;display:flex;flex-direction:column}
+#side .top{height:59px;background:#f0f2f5;display:flex;align-items:center;padding:0 16px;font-weight:600;color:#41525d}
+#side .search{padding:8px 12px}#side .search div{background:#f0f2f5;border-radius:8px;padding:8px 12px;color:#8696a0;font-size:13px}
+.chat{display:flex;gap:12px;padding:10px 14px;align-items:center;border-bottom:1px solid #f2f2f2}.chat.on{background:#f0f2f5}
+.av{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:600}
+.chat .n{font-weight:500}.chat .p{color:#667781;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#main header{height:59px;background:#f0f2f5;display:flex;align-items:center;gap:12px;padding:0 16px;border-left:1px solid #e9edef}
+#main header .sub{font-size:12px;color:#667781}
+#msgs{flex:1;overflow:auto;padding:18px 60px;background:#efeae2}
+.row{display:flex;margin:4px 0}.row.o{justify-content:flex-end}
+.message-in,.message-out{max-width:62%;padding:6px 9px 8px;border-radius:8px;box-shadow:0 1px .5px rgba(11,20,26,.13);background:#fff;position:relative}
+.message-out{background:#d9fdd3}
+.tm{font-size:11px;color:#667781;float:right;margin:6px 0 -4px 10px}
+.day{text-align:center;margin:8px 0}.day span{background:#fff;font-size:12px;color:#54656f;padding:5px 12px;border-radius:8px;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+footer{background:#f0f2f5;padding:8px 16px;display:flex;gap:12px;align-items:center}
+footer .ic{color:#54656f;font-size:20px;width:26px;text-align:center}
+footer div[contenteditable]{flex:1;background:#fff;padding:9px 12px;border-radius:8px;min-height:21px;outline:none;font-size:15px}
+</style></head><body>
+<div id="side"><div class="top">聊天</div><div class="search"><div>搜索或开始新聊天</div></div><div id="list"></div></div>
+<div id="main"><header><div class="av" id="hav"></div><div><div id="hname"></div><div class="sub" id="hsub"></div></div></header>
+<div id="msgs"></div><footer><span class="ic">＋</span><span class="ic">☺</span><div contenteditable="true" role="textbox" data-tab="10"></div><span class="ic">🎤</span></footer></div>
+<script>
+const chats={
+ ar:{id:'971000000001',name:'Al Noor Electrical（示例）',sub:'迪拜',color:'#00a884',prev:'كم السعر ومدة التسليم؟',msgs:[
+  [1,'Hello, thank you for contacting us. How can I help you?','10:02'],
+  [0,'السلام عليكم، نحتاج قواطع MCCB بقدرة 250 أمبير، 3 أقطاب','10:05'],
+  [0,'الكمية 200 قطعة. ما هو السعر ومدة التسليم؟','10:06']]},
+ kk:{id:'77000000002',name:'Almaty Energo（示例）',sub:'阿拉木图',color:'#7f66ff',prev:'Контакторлардың бағасы қанша?',msgs:[
+  [0,'Сәлеметсіз бе! Контакторлардың бағасы қанша?','09:41'],[0,'Бізге 32А, 50 дана керек','09:42']]},
+ bn:{id:'8800000000003',name:'Dhaka Power Solutions（示例）',sub:'达卡',color:'#ff8a3d',prev:'আমাদের ATS দরকার',msgs:[[0,'হ্যালো, আমাদের 400A ATS দরকার। ক্যাটালগ পাঠাতে পারবেন?','09:15']]}
+};
+window.sentLog=[];
+document.querySelector('footer [contenteditable]').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sentLog.push(e.target.innerText);e.target.innerText='';}});
+function renderList(active){const l=document.getElementById('list');l.innerHTML='';for(const k in chats){const c=chats[k];l.insertAdjacentHTML('beforeend',`<div class="chat ${k===active?'on':''}"><div class="av" style="background:${c.color}">${c.name[0]}</div><div><div class="n">${c.name}</div><div class="p">${c.prev}</div></div></div>`);}}
+window.openChat=(k)=>{const c=chats[k];renderList(k);document.getElementById('hname').textContent=c.name;document.getElementById('hsub').textContent=c.sub;const av=document.getElementById('hav');av.style.background=c.color;av.textContent=c.name[0];
+ const box=document.getElementById('msgs');box.innerHTML='<div class="day"><span>今天</span></div>';
+ c.msgs.forEach(([out,t,tm],i)=>{box.insertAdjacentHTML('beforeend',`<div class="row ${out?'o':''}" role="row"><div data-id="${out?'true':'false'}_${c.id}@c.us_M${i}"><div class="${out?'message-out':'message-in'}"><div data-pre-plain-text="[${tm}] x: "><span class="selectable-text copyable-text" dir="auto"><span>${t}</span></span></div><span class="tm">${tm}</span></div></div></div>`);});};
+openChat('ar');
+</script></body></html>

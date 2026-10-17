@@ -1,0 +1,7 @@
+{
+  "name": "tradelingo-tests",
+  "private": true,
+  "description": "TradeLingo 自动测试（Playwright + 模拟的 WhatsApp 页面）",
+  "scripts": { "test": "node run-all.js" },
+  "devDependencies": { "playwright": "1.56.0" }
+}

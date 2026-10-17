@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;height:100vh;display:flex;flex-direction:column;font:14px sans-serif}#main{flex:1;display:flex;flex-direction:column}#msgs{flex:1}footer{padding:10px}footer div[contenteditable]{background:#fff;border:1px solid #ccc;padding:8px;min-height:20px}</style></head>
+<body><div id="main"><div id="msgs"><div role="row"><div data-id="false_391234@c.us_M1"><div class="message-in"><div data-pre-plain-text="x"><span class="selectable-text" dir="auto"><span>Buongiorno, vorrei informazioni</span></span></div></div></div></div></div>
+<footer><div contenteditable="true" role="textbox"><p><br></p></div></footer></div>
+<script>
+// 模拟 Lexical：自己维护文本和选区；选区只在 selectionchange（异步）时同步；所有输入走 beforeinput / paste 并阻止浏览器默认行为
+const el = document.querySelector('footer [contenteditable]');
+let model = '', a = 0, b = 0;
+function offsetOf(node, off) {
+  if (node === el || node.nodeName === 'P') return off === 0 ? 0 : model.length;
+  let n = 0; const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  while (w.nextNode()) { if (w.currentNode === node) return n + off; n += w.currentNode.length; }
+  return model.length;
+}
+document.addEventListener('selectionchange', () => {
+  const s = getSelection(); if (!s.rangeCount || !el.contains(s.anchorNode)) return;
+  const r = s.getRangeAt(0); a = offsetOf(r.startContainer, r.startOffset); b = offsetOf(r.endContainer, r.endOffset);
+});
+function render(caret) {
+  el.innerHTML = model ? model.split('\n').map((l) => `<p>${l ? l.replace(/&/g,'&amp;').replace(/</g,'&lt;') : '<br>'}</p>`).join('') : '<p><br></p>';
+  a = b = caret;
+  // 光标放到末尾（简化）
+  const s = getSelection(); const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+}
+function apply(data) { const lo = Math.min(a, b), hi = Math.max(a, b); model = model.slice(0, lo) + data + model.slice(hi); render(lo + data.length); }
+el.addEventListener('beforeinput', (e) => {
+  e.preventDefault();
+  if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') apply(e.data || '');
+  else if (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak') apply('\n');
+  else if (e.inputType.startsWith('delete')) { if (a !== b) apply(''); else if (a > 0) { a--; apply(''); } }
+});
+// Lexical 会把外部直接改动 DOM 的结果还原（execCommand 不触发 beforeinput，只触发 input）
+el.addEventListener('input', () => { const keepA = a, keepB = b; render(0); a = keepA; b = keepB; });
+el.addEventListener('paste', (e) => { e.preventDefault(); apply(e.clipboardData.getData('text/plain')); });
+window.sent = []; el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sent.push(model); model=''; render(0); } });
+window.modelText = () => model;
+window.resetEditor = () => { model = ''; render(0); };
+</script></body></html>

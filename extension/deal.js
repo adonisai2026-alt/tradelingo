@@ -50,7 +50,14 @@
 
   // ---------- 存储 ----------
   let deals = {};
-  chrome.storage.local.get({ wadlDeals: {} }).then((r) => { deals = r.wadlDeals || {}; refreshBadge(); });
+  chrome.storage.local.get({ wadlDeals: {} }).then((r) => {
+    deals = r.wadlDeals || {};
+    // 旧版本里整段保存的手动修改，拆回一条一条
+    let migrated = false;
+    for (const rec of Object.values(deals)) if (tlMigrateRec(rec)) migrated = true;
+    if (migrated) saveDeals();
+    refreshBadge();
+  });
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area === 'local' && ch.wadlDeals) { deals = ch.wadlDeals.newValue || {}; if (open) render(); refreshBadge(); }
   });
@@ -262,7 +269,8 @@
       if (rec.pending > 0) ops.append(btn(tr('更新（{n} 条新消息）', { n: rec.pending }), 'tl-primary', () => analyze('update'), tr('只把新消息发给 DeepSeek，费用约为首次生成的一半')));
       else ops.append(el('span', 'tl-hint', tr('没有新消息需要分析')));
       ops.append(btn(tr('重新生成'), 'tl-ghost', () => {
-        if (rec.locked && rec.locked.length && !window.confirm(tr('重新生成会覆盖你手动修改过的字段，确定吗？'))) return;
+        const anyEdited = TL_LIST_FIELDS.some((f) => tlArr(rec.card[f]).some((x) => x && x.edited)) || (rec.card.next && rec.card.next.edited);
+        if (((rec.locked && rec.locked.length) || anyEdited) && !window.confirm(tr('重新生成会覆盖你手动修改过的字段，确定吗？'))) return;
         analyze('full');
       }, tr('从头分析当前可见的消息')));
     }
@@ -302,6 +310,10 @@
     const h = el('div', 'tl-sec-h');
     h.append(el('span', 'tl-label', label));
     if ((rec.locked || []).includes(field)) h.append(el('span', 'tl-lock', tr('✎ 已手动')));
+    else if (TL_LIST_FIELDS.includes(field)) {
+      const n = tlArr(rec.card[field]).filter((x) => x && x.edited).length;
+      if (n) { const lk = el('span', 'tl-lock', tr('✎ {n} 条你改过', { n })); lk.title = tr('你改过的条目在 AI 更新时会原样保留，新内容照常加入'); h.append(lk); }
+    }
     h.append(btn(tr('编辑'), 'tl-edit', () => { editing = field; render(); }, tr('手动修改；修改后 AI 更新不会覆盖它')));
     box.append(h);
     body.append(box);
@@ -311,8 +323,14 @@
       ta.rows = Math.max(2, ta.value.split('\n').length + 1);
       const row = el('div', 'tl-edit-row');
       row.append(btn(tr('保存'), 'tl-primary', () => {
-        rec.card[field] = { manual: ta.value.trim() };
-        rec.locked = Array.from(new Set([...(rec.locked || []), field]));
+        if (TL_LIST_FIELDS.includes(field)) {
+          // 列表：按条保存，改过的条目标记 edited；不锁整项，AI 更新时还能加新条目
+          rec.card[field] = tlParseListEdit(field, ta.value, rec.card[field]);
+          rec.locked = (rec.locked || []).filter((f) => f !== field);
+        } else {
+          rec.card[field] = field === 'next' ? tlParseNextEdit(ta.value, rec.card.next) : { manual: ta.value.trim() };
+          rec.locked = Array.from(new Set([...(rec.locked || []), field]));
+        }
         editing = '';
         saveDeals();
         render();
@@ -326,6 +344,12 @@
     if (tlIsManual(v)) { box.append(el('div', 'tl-text tl-manual', v.manual || tr('（空）'))); return null; }
     return box;
   }
+
+  // 你改过的条目：小铅笔标记
+  const edMark = (row, it) => {
+    if (it && it.edited) { const m = el('span', 'tl-ed', ' ✎'); m.title = tr('你改过这一条，AI 更新不会改动它'); row.append(m); }
+    return row;
+  };
 
   function renderCard(body, rec) {
     const card = rec.card;
@@ -345,6 +369,7 @@
     kpi.append(hk, sk, vk);
     body.append(kpi);
     if (heat && !tlIsManual(heat) && heat.reason) body.append(withSrc(el('div', 'tl-reason', tr('判断依据：') + heat.reason), rec, heat.src));
+    if (tlIsManual(heat) && !lvl) body.append(el('div', 'tl-reason tl-warn', tr('热度请写“高 / 中 / 低”，这样才能用于排序和提醒')));
     const kpiEdit = el('div', 'tl-kpi-edit');
     for (const f of ['heat', 'stage', 'value']) kpiEdit.append(btn(tr('改{x}', { x: tlLabel(f) }), 'tl-edit', () => { editing = f; render(); }));
     body.append(kpiEdit);
@@ -358,13 +383,15 @@
     let box = section(body, rec, 'next', '▶ ' + tlLabel('next'), 'tl-next');
     if (box) {
       const nx = card.next || {};
-      box.append(withSrc(el('div', 'tl-text tl-strong', tlFieldText('next', nx) || '—'), rec, nx.src));
+      box.append(edMark(withSrc(el('div', 'tl-text tl-strong', tlFieldText('next', nx) || '—'), rec, nx.src), nx));
+      if (nx.edited && nx.owner === '我方' && !nx.due && /前|截止|before|by|deadline/i.test(nx.action || '')) box.append(el('div', 'tl-hint tl-warn', tr('没认出截止日期，可以写成 10-20 或 2026-10-20')));
+      if (nx.edited && !nx.draft_zh && nx.action) box.append(btn(tr('把这句写给客户'), 'tl-primary', () => T.insertChinese(nx.action, tr('草稿'), tr('正在翻译…'))));
       if (nx.draft_zh) {
         box.append(el('div', 'tl-draft', '“' + nx.draft_zh + '”'));
         box.append(btn(tr('起草这条消息'), 'tl-primary', () => T.insertChinese(nx.draft_zh, tr('草稿'), tr('正在翻译草稿…')), tr('翻译成当前客户的语言并填入输入框，确认后自己发送')));
       }
     }
-    const nxManual = tlIsManual(card.next) && card.next.manual;
+    const nxManual = tlIsManual(card.next) && card.next.manual; // 旧数据（会在加载时自动转换）
     if (nxManual && editing !== 'next') {
       body.lastChild.append(btn(tr('把这句写给客户'), 'tl-primary', () => T.insertChinese(nxManual, tr('草稿'), tr('正在翻译…'))));
     }
@@ -374,7 +401,7 @@
     if (box) {
       const list = tlArr(card.blockers);
       if (!list.length) box.append(el('div', 'tl-text tl-muted', tr('暂未发现')));
-      for (const b of list) box.append(withSrc(el('div', 'tl-text', '· ' + b.text), rec, b.src));
+      for (const b of list) box.append(edMark(withSrc(el('div', 'tl-text', '· ' + b.text), rec, b.src), b));
     }
 
     // 需求 + 条款 + 客户
@@ -382,7 +409,7 @@
     if (box) {
       const list = tlArr(card.needs);
       if (!list.length) box.append(el('div', 'tl-text tl-muted', tr('未提及')));
-      for (const n of list) box.append(withSrc(el('div', 'tl-text', '· ' + tlFieldText('needs', [n])), rec, n.src));
+      for (const n of list) box.append(edMark(withSrc(el('div', 'tl-text', '· ' + tlFieldText('needs', [n])), rec, n.src), n));
     }
     box = section(body, rec, 'terms', tlLabel('terms'));
     if (box) box.append(el('div', 'tl-text' + (card.terms ? '' : ' tl-muted'), card.terms || tr('未提及')));
@@ -401,6 +428,8 @@
           const late = c.who === '我方' && c.due <= today;
           row.append(el('span', 'tl-due' + (late ? ' tl-late' : ''), ' ' + (late ? (c.due < today ? tr('已逾期') : tr('今天到期')) : tr('截止 {x}', { x: c.due.slice(5) }))));
         }
+        edMark(row, c);
+        if (tlDueUnclear(c)) row.append(el('div', 'tl-hint tl-warn', tr('没认出截止日期，可以写成 10-20 或 2026-10-20，才会按时提醒')));
         box.append(row);
       }
     }
@@ -410,7 +439,7 @@
     if (box) {
       const list = tlArr(card.quotes);
       if (!list.length) box.append(el('div', 'tl-text tl-muted', tr('暂无')));
-      for (const q of list) box.append(withSrc(el('div', 'tl-text', `· ${q.date ? q.date + ' ' : ''}${tlEnum(q.who)}${q.item ? ' ' + q.item : ''}${tlSep()}${q.price}`), rec, q.src));
+      for (const q of list) box.append(edMark(withSrc(el('div', 'tl-text', '· ' + tlFieldText('quotes', [q])), rec, q.src), q));
     }
 
     // 缺失信息 + 一键追问
@@ -420,7 +449,7 @@
       if (!list.length) box.append(el('div', 'tl-text tl-muted', tr('关键信息都已明确')));
       for (const m of list) {
         const row = el('div', 'tl-miss');
-        row.append(el('span', '', m.field));
+        edMark(row.appendChild(el('span', '', m.field)), m);
         if (m.ask_zh) row.append(btn(tr('生成追问'), 'tl-mini', () => T.insertChinese(m.ask_zh, tr('追问'), tr('正在翻译追问…')), m.ask_zh));
         box.append(row);
       }
@@ -439,10 +468,23 @@
     sug.forEach((s, i) => {
       const row = el('div', 'tl-sug-row');
       const locked = (rec.locked || []).includes(s.field);
-      row.append(el('b', '', tlLabel(s.field) + (locked ? tr('（你手动改过）') : '')));
-      const oldT = tlFieldText(s.field, rec.card[s.field]) || tr('空');
-      const newT = tlFieldText(s.field, s.value) || tr('空');
-      row.append(el('div', 'tl-sug-diff', `${oldT.replace(/\n/g, tr('；'))}  →  ${newT.replace(/\n/g, tr('；'))}`));
+      const keptN = TL_LIST_FIELDS.includes(s.field) ? tlArr(s.value).filter((x) => x && x.edited).length : 0;
+      row.append(el('b', '', tlLabel(s.field) + (locked ? tr('（你手动改过）') : keptN ? tr('（保留你改过的 {n} 条）', { n: keptN }) : '')));
+      if (TL_LIST_FIELDS.includes(s.field) && !tlIsManual(rec.card[s.field])) {
+        // 列表：只显示新增和去掉的条目
+        const line = (it) => tlCleanLine(tlFieldText(s.field, [it]));
+        const oldL = tlArr(rec.card[s.field]).map(line);
+        const newL = tlArr(s.value).map(line);
+        const added = newL.filter((x) => !oldL.includes(x));
+        const removed = oldL.filter((x) => !newL.includes(x));
+        for (const x of added) row.append(el('div', 'tl-sug-diff tl-add', '+ ' + x));
+        for (const x of removed) row.append(el('div', 'tl-sug-diff tl-del', '− ' + x));
+        if (!added.length && !removed.length) row.append(el('div', 'tl-sug-diff', tr('（只调整了顺序或细节）')));
+      } else {
+        const oldT = tlFieldText(s.field, rec.card[s.field]) || tr('空');
+        const newT = tlFieldText(s.field, s.value) || tr('空');
+        row.append(el('div', 'tl-sug-diff', `${oldT.replace(/\n/g, tr('；'))}  →  ${newT.replace(/\n/g, tr('；'))}`));
+      }
       if (s.reason) row.append(el('div', 'tl-hint', s.reason));
       const ops = el('div', 'tl-edit-row');
       ops.append(btn(tr('采纳'), 'tl-primary', () => accept(rec, i)), btn(tr('忽略'), 'tl-ghost', () => { sug.splice(i, 1); saveDeals(); render(); }));
@@ -522,8 +564,10 @@
       for (const c of changed) {
         const f = c && c.field;
         if (!TL_DEAL_FIELDS.includes(f) || !(f in card)) continue;
-        if (JSON.stringify(card[f]) === JSON.stringify(rec.card[f])) continue;
-        sug.push({ field: f, value: card[f], reason: c.reason || '' });
+        // 列表字段：你改过的条目一定原样保留（不管 AI 有没有照做），AI 的新条目加进来
+        const val = TL_LIST_FIELDS.includes(f) ? tlMergeList(f, rec.card[f], card[f]) : card[f];
+        if (JSON.stringify(val) === JSON.stringify(rec.card[f])) continue;
+        sug.push({ field: f, value: val, reason: c.reason || '' });
       }
       // 同一字段只保留最新建议
       const keep = (rec.suggestions || []).filter((s) => !sug.some((n) => n.field === s.field));

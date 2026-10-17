@@ -1,15 +1,15 @@
 {
-  "version": "0.10.1",
+  "version": "0.10.2",
   "date": "2026-10-17",
   "notes": [
-    "修复：输入框为空时点“话”，话术框一闪就消失",
-    "修复：发图片时“添加说明”里的文字不能翻译",
-    "新增：话术触发键可选“/”或“;”，避免和 WhatsApp Business 的快捷回复冲突"
+    "修复：手动改过承诺、报价、卡点、需求后，点“更新”不再加入新内容",
+    "修复：手动改过的承诺不再提醒、Notion 里没有截止日期",
+    "改进：截止日期支持 10-20、10/20、10月20日 等写法；认不出时会提示"
   ],
   "notes_en": [
-    "Fixed: the Phrases button menu closed immediately when the message box was empty",
-    "Fixed: captions on images couldn't be translated",
-    "New: choose / or ; as the quick-phrase key, so it doesn't clash with WhatsApp Business quick replies"
+    "Fixed: after you edited promises, quotes, blockers or needs, updates no longer added new items",
+    "Fixed: edited promises lost their reminders and Notion due dates",
+    "Improved: due dates like 10-20, 10/20 or Oct 20 are recognised, with a hint when they aren't"
   ],
   "download": "https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip",
   "changelog": "https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"

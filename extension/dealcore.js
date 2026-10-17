@@ -188,3 +188,181 @@ function tlMergeBackup(cur, b) {
   patch.wadlChatLangs = langs;
   return { patch, dealsAdded, dealsUpdated, langs: langCount, settings, keys };
 }
+
+// ---------- 手动编辑：按“条”保存，AI 更新时保留你改过的条目 ----------
+// 列表字段：每一条单独保存，手动改过的条目带 edited: true。更新时 AI 可以追加新条目，但不能改你改过的条目。
+var TL_LIST_FIELDS = ['commitments', 'quotes', 'blockers', 'needs', 'missing'];
+
+const tlPad = (n) => String(n).padStart(2, '0');
+const TL_MON = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 };
+
+// 从一段文字里找第一个日期，返回 YYYY-MM-DD；认不出返回 ''
+// 支持 2026-10-20、2026/10/20、2026年10月20日、10-20、10/20、10月20日、Oct 20、20 Oct。“下周五”这类说法不猜。
+function tlParseDate(str, now) {
+  const s = String(str || '');
+  now = now || Date.now();
+  const valid = (y, m, d) => {
+    if (m < 1 || m > 12 || d < 1 || d > 31) return '';
+    const dt = new Date(y, m - 1, d);
+    return dt.getMonth() === m - 1 ? `${y}-${tlPad(m)}-${tlPad(d)}` : '';
+  };
+  // 没写年份：取离今天最近、且不早于 60 天前的那一天
+  const guessYear = (m, d) => {
+    const y = new Date(now).getFullYear();
+    const t = new Date(y, m - 1, d).getTime();
+    return t < now - 60 * 864e5 ? y + 1 : y;
+  };
+  let m = s.match(/(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})/);
+  if (m) { const r = valid(+m[1], +m[2], +m[3]); if (r) return r; }
+  m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?/);
+  if (m) { const r = valid(guessYear(+m[1], +m[2]), +m[1], +m[2]); if (r) return r; }
+  const re = /(^|[^\d.$/\-])(\d{1,2})[-/](\d{1,2})(?![\d/\-])/g;
+  while ((m = re.exec(s))) { const r = valid(guessYear(+m[2], +m[3]), +m[2], +m[3]); if (r) return r; }
+  m = s.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)[a-z]*\b/i);
+  if (m) { const mo = TL_MON[m[2].toLowerCase()]; const r = valid(guessYear(mo, +m[1]), mo, +m[1]); if (r) return r; }
+  m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sept?|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?!\d)/i);
+  if (m) { const mo = TL_MON[m[1].toLowerCase()]; const r = valid(guessYear(mo, +m[2]), mo, +m[2]); if (r) return r; }
+  return '';
+}
+
+function tlWho(s) {
+  s = String(s || '').trim().toLowerCase();
+  if (/^(我方|我们|我|us|we|our side|ours)$/.test(s)) return '我方';
+  if (/^(客户|对方|客人|customer|client|buyer)$/.test(s)) return '客户';
+  return '';
+}
+
+const tlCleanLine = (line) => String(line || '').replace(/^\s*[·•\-*]\s*/, '').trim();
+const TL_LEAD_DATE = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}-\d{1,2})\s+/;
+const TL_WHO_PREFIX = /^([^：:\s]{1,12})\s*[：:]\s*/;
+
+// 一行文字 → 一条结构化条目
+function tlParseItem(field, line, now) {
+  let s = tlCleanLine(line);
+  if (!s) return null;
+  if (field === 'blockers') return { text: s };
+  if (field === 'missing') return { field: s };
+  if (field === 'needs') {
+    const m = s.match(/^(.*?)(?:\s+×\s*(\S+))?(?:\s+(?:目标价|target)\s*(.+))?$/i);
+    const it = { item: (m && m[1]) || s };
+    if (m && m[2]) it.qty = m[2];
+    if (m && m[3]) it.target = m[3];
+    return it;
+  }
+  let date = '';
+  let m = s.match(TL_LEAD_DATE);
+  if (m && /[：:]/.test(s.slice(m[0].length))) { date = m[1]; s = s.slice(m[0].length); }
+  if (field === 'quotes') {
+    let who = '';
+    m = s.match(/^(我方|我们|客户|客人|对方|us|we|customer|client)\s*/i);
+    if (m) { who = tlWho(m[1]); s = s.slice(m[0].length); }
+    const i = s.search(/[：:]/);
+    const q = { date, who, item: i >= 0 ? s.slice(0, i).trim() : '', price: i >= 0 ? s.slice(i + 1).trim() : s };
+    return q;
+  }
+  // commitments
+  let who = '我方';
+  m = s.match(TL_WHO_PREFIX);
+  if (m && tlWho(m[1])) { who = tlWho(m[1]); s = s.slice(m[0].length); }
+  let due = '';
+  m = s.match(/[（(]\s*(?:截止|due|deadline|by)\s*([^）)]+)[）)]\s*$/i);
+  if (m) { due = tlParseDate(m[1], now); s = s.slice(0, m.index).trim(); }
+  else due = tlParseDate(s, now);
+  return { who, what: s, date, due: due || null };
+}
+
+// 编辑框里的文字 → 条目列表。和原来一模一样的行保留原条目（含依据、追问等），改过或新写的行标记 edited
+function tlParseListEdit(field, text, oldItems, now) {
+  const old = tlArr(oldItems).slice();
+  const used = new Set();
+  const out = [];
+  for (const line of String(text || '').split(/\n+/)) {
+    const clean = tlCleanLine(line);
+    if (!clean) continue;
+    const j = old.findIndex((o, i) => !used.has(i) && tlCleanLine(tlFieldText(field, [o])) === clean);
+    if (j >= 0) { used.add(j); out.push(old[j]); continue; }
+    const it = tlParseItem(field, clean, now);
+    if (!it) continue;
+    if (field === 'missing') { const o = old.find((x) => x && x.field === it.field); if (o && o.ask_zh) it.ask_zh = o.ask_zh; }
+    it.edited = true;
+    out.push(it);
+  }
+  return out;
+}
+
+// “下一步”手动修改：保持结构（负责方、动作、截止日期），这样提醒和 Notion 日期照常有效
+function tlParseNextEdit(text, old, now) {
+  let s = String(text || '').replace(/\s*\n\s*/g, ' ').trim();
+  if (!s) return { owner: '我方', action: '', due: null, edited: true };
+  if (old && !tlIsManual(old) && tlFieldText('next', old) === s) return old;
+  let owner = '我方';
+  let m = s.match(TL_WHO_PREFIX);
+  if (m && tlWho(m[1])) { owner = tlWho(m[1]); s = s.slice(m[0].length); }
+  let due = '';
+  m = s.match(/[（(]\s*(?:by\s+)?([^）)]*?)\s*(?:前|before)?\s*[）)]\s*$/i);
+  if (m && tlParseDate(m[1], now)) { due = tlParseDate(m[1], now); s = s.slice(0, m.index).trim(); }
+  else due = tlParseDate(s, now);
+  const nx = { owner, action: s, due: due || null, edited: true };
+  if (old && !tlIsManual(old) && old.action === s && old.draft_zh) nx.draft_zh = old.draft_zh;
+  return nx;
+}
+
+// 比较两条是否说的是同一件事（用来把你改过的条目对回 AI 返回的条目）
+const tlNormText = (s) => String(s || '').toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
+function tlItemKey(field, it) {
+  if (!it) return '';
+  if (field === 'commitments') return tlNormText(it.what);
+  if (field === 'quotes') return tlNormText((it.item || '') + (it.price || ''));
+  if (field === 'needs') return tlNormText(it.item);
+  if (field === 'missing') return tlNormText(it.field);
+  return tlNormText(it.text);
+}
+function tlSimilar(a, b) {
+  if (!a || !b) return false;
+  if (a === b || (Math.min(a.length, b.length) >= 3 && (a.includes(b) || b.includes(a)))) return true;
+  const grams = (x) => { const g = new Set(); for (let i = 0; i < x.length - 1; i++) g.add(x.slice(i, i + 2)); return g; };
+  const ga = grams(a), gb = grams(b);
+  if (!ga.size || !gb.size) return false;
+  let n = 0;
+  for (const g of ga) if (gb.has(g)) n++;
+  return n / Math.min(ga.size, gb.size) >= 0.6;
+}
+
+// AI 返回的新列表 + 你改过的条目 → 合并结果：你改过的条目一定原样保留，AI 的新条目照常加入
+function tlMergeList(field, cur, ai) {
+  const curList = tlArr(cur);
+  const out = tlArr(ai).filter(Boolean).map((x) => ({ ...x }));
+  const edited = curList.map((x, i) => ({ x, i })).filter((e) => e.x && e.x.edited);
+  if (!edited.length) return out;
+  const taken = new Set();
+  const missing = [];
+  for (const { x, i } of edited) {
+    const k = tlItemKey(field, x);
+    let j = out.findIndex((a, n) => !taken.has(n) && tlNormText(JSON.stringify(a)) === tlNormText(JSON.stringify(x)));
+    if (j < 0) j = out.findIndex((a, n) => !taken.has(n) && ((Array.isArray(x.src) && Array.isArray(a.src) && x.src.length && x.src.some((s) => a.src.includes(s))) || tlSimilar(k, tlItemKey(field, a))));
+    if (j >= 0) { out[j] = x; taken.add(j); } else missing.push({ x, i });
+  }
+  // AI 漏掉的、你改过的条目：放回原来的位置
+  for (const { x, i } of missing) out.splice(Math.min(i, out.length), 0, x);
+  return out;
+}
+
+// 旧版本的作战卡：列表字段被整段存成 {manual: 文字}，拆回一条一条（都算你改过的）；“下一步”拆回结构
+function tlMigrateRec(rec, now) {
+  if (!rec || !rec.card) return false;
+  let changed = false;
+  for (const f of TL_LIST_FIELDS) {
+    if (tlIsManual(rec.card[f])) {
+      rec.card[f] = tlParseListEdit(f, rec.card[f].manual, [], now);
+      changed = true;
+    }
+    if (Array.isArray(rec.locked) && rec.locked.includes(f)) { rec.locked = rec.locked.filter((x) => x !== f); changed = true; }
+  }
+  if (tlIsManual(rec.card.next)) { rec.card.next = tlParseNextEdit(rec.card.next.manual, null, now); changed = true; }
+  return changed;
+}
+
+// 手动改过的“我方承诺”没认出截止日期，但看起来有期限
+function tlDueUnclear(c) {
+  return !!(c && c.edited && c.who === '我方' && !c.due && /前|截止|之前|以内|天内|周|月底|before|by|deadline|until|within/i.test(c.what || ''));
+}

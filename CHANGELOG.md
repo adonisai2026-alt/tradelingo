@@ -1,5 +1,13 @@
 # Changelog / 更新记录
 
+## 0.10.2
+- Fixed: editing a list section of the deal card (promises, price history, blockers, needs, missing info) turned the whole section into locked free text, so later updates never added new items, and edited promises lost their due dates (no reminders, empty "Promise due" in Notion). Edits are now saved item by item; items you change are marked ✎ and kept verbatim on update, while new items from the chat are still suggested. The merge is enforced in code, so your edits survive even if the AI rewrites or drops them.
+- Editing "Next step" keeps owner and due date, so reminders and Notion dates keep working; an edited next step can be written to the customer in one click.
+- Due dates are recognised in more formats (2026-10-20, 10-20, 10/20, 10月20日, Oct 20); vague ones like "next Friday" show a hint instead of being guessed. Free-text heat shows a hint to use High / Medium / Low.
+- Notion: a hand-written stage is only mapped to a standard stage when it matches exactly; otherwise it is written as is.
+- Existing cards edited with older versions are converted automatically on update.
+- 修复：手动修改作战卡的承诺、报价、卡点、需求、缺失信息后，整项被锁成一段文字，之后“更新”不再加入新内容，改过的承诺也失去截止日期（不提醒、Notion 无日期）。现在按条保存：你改过的条目标 ✎，更新时原样保留（由代码保证，不依赖 AI），新内容照常以建议形式加入。修改“下一步”保留负责方和截止日期。截止日期支持更多写法，认不出时提示；热度写法不对时提示。Notion 阶段不再模糊归类。旧数据升级时自动转换。
+
 ## 0.10.1
 - Fixed: the quick-phrase menu opened with the 话 (Phrases) button closed immediately (always when the message box was empty, and also when it had text). It now stays open until you pick a phrase, press Esc, click elsewhere or click the button again. Picking a phrase from the button keeps what you've already typed and adds the translated phrase after it.
 - Fixed: when sending an image, text in the "Add a caption" box couldn't be translated, because the extension used the chat message box hidden behind the image editor. It now prefers the box you're typing in and ignores covered ones; the toolbar, back-translation and phrases follow the caption box.

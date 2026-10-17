@@ -228,3 +228,12 @@
 .dark #tl-health { background: #3a3220; color: #f3e6c4; border-color: #7a6326; }
 .dark #tl-health button { background: #2a2416; color: #f3e6c4; border-color: #7a6326; }
 .dark #tl-health .tl-h-status { color: #e8d39a; }
+
+/* 作战卡：你改过的条目、提示、建议里的增删 */
+#tl-deal .tl-ed { color: #b45309; font-size: 11px; cursor: help; }
+#tl-deal .tl-warn { color: #b45309; }
+#tl-deal .tl-sug-diff.tl-add { color: #0b6e4f; }
+#tl-deal .tl-sug-diff.tl-del { color: #b42318; text-decoration: line-through; }
+.dark #tl-deal .tl-ed, .dark #tl-deal .tl-warn { color: #fcc58b; }
+.dark #tl-deal .tl-sug-diff.tl-add { color: #6ee7b7; }
+.dark #tl-deal .tl-sug-diff.tl-del { color: #ffb4ab; }

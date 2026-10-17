@@ -79,7 +79,10 @@ function notionProps(key, rec, names, cols, lang, now) {
     const w = tlWaiting(rec, now);
     const heat = tlHeatLevel(card.heat);
     const stageRaw = tlIsManual(card.stage) ? card.stage.manual : tlStr(card.stage);
-    const stage = (stageRaw.match(/询盘|报价|样品|谈判|下单|售后/) || [])[0] || '';
+    // 只有完全等于标准阶段（中文或英文）才对应到标准选项；其他写法原样写入，不去猜
+    const STAGES = ['询盘', '报价', '样品', '谈判', '下单', '售后'];
+    const raw = stageRaw.trim();
+    const stage = STAGES.find((x) => raw === x || (TL_EN[x] && raw.toLowerCase() === TL_EN[x].toLowerCase())) || '';
     const amount = tlAmount(card.value);
     const vals = {
       title: tlDealTitle(rec),

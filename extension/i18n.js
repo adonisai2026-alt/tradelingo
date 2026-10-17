@@ -60,6 +60,12 @@ function tlApplyI18n(root) {
 
 // ---------- 英文词典（键为中文原文） ----------
 var TL_EN = {
+  // 手动编辑按条保存
+  '✎ {n} 条你改过': '✎ {n} edited by you', '你改过的条目在 AI 更新时会原样保留，新内容照常加入': 'Items you edited are kept as they are when the AI updates the card; new items are still added',
+  '你改过这一条，AI 更新不会改动它': 'You edited this item; AI updates won\'t change it', '热度请写“高 / 中 / 低”，这样才能用于排序和提醒': 'Write heat as "High", "Medium" or "Low" so it can be used for ranking and reminders',
+  '没认出截止日期，可以写成 10-20 或 2026-10-20': 'No due date recognised. Write it as 10-20 or 2026-10-20',
+  '没认出截止日期，可以写成 10-20 或 2026-10-20，才会按时提醒': 'No due date recognised. Write it as 10-20 or 2026-10-20 to get a reminder',
+  '（保留你改过的 {n} 条）': ' (keeps the {n} you edited)', '（只调整了顺序或细节）': '(only order or details changed)',
   // 快捷话术触发键
   '快捷话术（也可在输入框输入 {k} 调出）': 'Quick phrases (or type {k} in the message box)', '触发键': 'Trigger key',
   '/（斜杠）': '/ (slash)', ';（分号，WhatsApp Business 推荐）': '; (semicolon, recommended for WhatsApp Business)',

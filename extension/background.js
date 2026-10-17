@@ -548,6 +548,7 @@ function dealSystemPrompt(mode, lang) {
       '请结合当前作战卡和新消息，返回完整的新作战卡（格式同上），并额外加一个字段 "changed": [{"field": "顶层字段名", "reason": "一句话说明哪条新消息带来了什么变化"}]。',
       'changed 只列出确实因为新消息而变化的顶层字段，可选：customer、heat、stage、value、needs、terms、blockers、next、commitments、quotes、missing。没有变化就返回空数组。',
       '如果某字段的值是 {"manual": "..."}，表示用户手动填写，除非新消息明确推翻它，否则原样保留。',
+      '列表字段（needs、blockers、commitments、quotes、missing）里带 "edited": true 的条目是用户手动修改过的：必须原样保留在返回结果中（连同 "edited": true），不要改写、合并或删除；新消息带来的新需求、新卡点、新承诺、新报价等照常追加为新条目，并把该字段列入 changed。',
       'commitments 和 quotes 要保留原有条目，并追加新条目。'
     );
   }
@@ -817,6 +818,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   }
   // 老用户升级：界面保持中文（很多外贸人的浏览器是英文的，不能因为“跟随浏览器”突然变成英文）
   if (details && details.reason === 'update') {
+    // 旧版本里整段保存的手动修改（承诺、报价等）拆回一条一条，提醒和 Notion 日期才能用
+    const { wadlDeals } = await chrome.storage.local.get({ wadlDeals: {} });
+    let migrated = false;
+    for (const rec of Object.values(wadlDeals || {})) if (tlMigrateRec(rec)) migrated = true;
+    if (migrated) await chrome.storage.local.set({ wadlDeals });
     const { uiLang } = await chrome.storage.local.get('uiLang');
     if (!uiLang) await chrome.storage.local.set({ uiLang: 'zh' });
   }

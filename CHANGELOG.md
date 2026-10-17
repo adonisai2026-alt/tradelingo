@@ -1,5 +1,14 @@
 # Changelog / 更新记录
 
+## 0.10.1
+- Fixed: the quick-phrase menu opened with the 话 (Phrases) button closed immediately (always when the message box was empty, and also when it had text). It now stays open until you pick a phrase, press Esc, click elsewhere or click the button again. Picking a phrase from the button keeps what you've already typed and adds the translated phrase after it.
+- Fixed: when sending an image, text in the "Add a caption" box couldn't be translated, because the extension used the chat message box hidden behind the image editor. It now prefers the box you're typing in and ignores covered ones; the toolbar, back-translation and phrases follow the caption box.
+- New: quick-phrase trigger key setting, "/" (default) or ";". WhatsApp Business opens its own quick replies with "/", which clashed with the extension (both lists appeared and Enter was taken by the extension). Business users can choose ";" (the full-width "；" from Chinese input methods works too); the setup wizard asks whether you use WhatsApp Business.
+- Phrase search lists keyword matches before matches in the phrase text.
+- 修复：点“话”打开的话术框会立刻消失（输入框为空时必现，有文字时也会），现在会一直显示，直到选择、按 Esc、点别处或再点一次“话”；从“话”插入时保留已写的文字。
+- 修复：发图片时“添加说明”里的文字不能翻译（插件误用了被图片界面挡住的聊天输入框）。现在优先使用正在输入、没有被挡住的输入框。
+- 新增：快捷话术触发键可选“/”（默认）或“;”，避免和 WhatsApp Business 自带的“/”快捷回复冲突；中文输入法的“；”也可以。向导里会询问是否使用 WhatsApp Business。话术筛选时关键词匹配的排在前面。
+
 ## 0.10.0
 - New: **Notion sync** (one way, TradeLingo → Notion). Paste a Notion internal-connection token, pick a page shared with the connection, and TradeLingo creates a "TradeLingo deals" database (23 columns: customer, heat, stage, estimated value, next step and due date, our promises and the earliest due date, reply status, last messages, priority, needs, terms, blockers, price history, missing info, summary…). Deal cards are written a few seconds after they change; unchanged cards aren't re-sent. Manual "sync everything", disconnect, and reconnecting an existing TradeLingo database.
 - Columns you add in Notion are never touched; columns you delete or rename are skipped and reported. Pages deleted in Notion are recreated. Chat text and phone numbers are never sent.

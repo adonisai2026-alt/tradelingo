@@ -60,6 +60,12 @@ function tlApplyI18n(root) {
 
 // ---------- 英文词典（键为中文原文） ----------
 var TL_EN = {
+  // 快捷话术触发键
+  '快捷话术（也可在输入框输入 {k} 调出）': 'Quick phrases (or type {k} in the message box)', '触发键': 'Trigger key',
+  '/（斜杠）': '/ (slash)', ';（分号，WhatsApp Business 推荐）': '; (semicolon, recommended for WhatsApp Business)',
+  'WhatsApp Business 输入“/”会调出它自带的快捷回复，和插件冲突，所以用 Business 的请选“;”。中文输入法打出的“；”也可以。任何时候都可以点工具条上的“话”调出话术。': 'In WhatsApp Business, typing "/" opens its own quick replies, which clashes with this extension, so Business users should choose ";". The full-width "；" from Chinese input methods works too. You can always open quick phrases with the "Phrases" button on the toolbar.',
+  '在输入框输入 ; 加关键词（如 ;交期）调出常用话术，自动翻译': 'Type ; plus a keyword (such as ;leadtime) for a saved phrase, translated automatically',
+  '我用的是': 'I use',
   // Notion 同步
   'Notion 同步': 'Notion sync', 'Notion 响应超时': 'Notion timed out', 'Notion 密钥无效，请重新复制': 'Invalid Notion key, please copy it again',
   'Notion 拒绝了数据：{x}': 'Notion rejected the data: {x}', 'Notion 请求过于频繁，请稍后再试': 'Too many Notion requests, please try again shortly', 'Notion 返回错误 {s}': 'Notion error {s}',
@@ -292,11 +298,12 @@ var TL_EN = {
 };
 
 var TL_EN_HTML = {
+  'wel.biz.hint': 'If checked, quick phrases open with <b>;</b> instead of "/", so they don\'t clash with WhatsApp Business\'s own "/" quick replies. You can change this in settings later.',
   'opt.notion.calendar': 'To see follow-ups by date in Notion, open the database and click <b>+ Add view</b> → <b>Calendar</b>, showing by "Next step due" or "Promise due". It also works in the Notion mobile app.',
   'opt.notion.howto': 'Before you start: at <b>notion.so/profile/integrations</b> (Developer tools → Connections) create an internal connection with read, update and insert content; create an empty page in Notion and add it under the connection\'s "Content access"; then paste the connection\'s API token above.',
   'opt.upd.step2': 'Copy everything inside the unzipped <b>extension</b> folder into the folder you originally installed from, replacing the old files.<br><span class="hint">Always overwrite the original folder. A new folder starts with empty settings.</span>',
   'opt.upd.step3': 'Open <b>chrome://extensions</b> (Edge: edge://extensions) and click <b>⟳ Reload</b> on the TradeLingo card.',
-  'opt.phrases.hint': 'Type <b>/</b> plus a keyword (such as <b>/quote</b>) in the WhatsApp message box and press Enter; the phrase is translated into the current customer\'s language and put in the message box. Format: one "keyword | text" per line; \\n inside the text means a line break. Replace the sample lead times, payment terms and certificates with your company\'s own.'
+  'opt.phrases.hint': 'Type the trigger key plus a keyword (such as <b>/quote</b> or <b>;quote</b>) in the WhatsApp message box, or click "Phrases" on the toolbar, then press Enter; the phrase is translated into the current customer\'s language and put in the message box. Format: one "keyword | text" per line; \\n inside the text means a line break. Replace the sample lead times, payment terms and certificates with your company\'s own.',
 };
 
 // 英文界面的示例快捷话术（新装、选择英文界面时使用）

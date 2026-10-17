@@ -112,6 +112,8 @@
     <div class="row"><label for="inT">客户消息翻译成</label><select id="inT"></select></div>
     <div class="row"><label for="outT">我回复时默认译成</label><select id="outT"></select></div>
     <p class="hint">例如客户发阿拉伯语，你回复时会自动译成阿拉伯语；还没识别出语言的新客户，才用上面的默认语言。</p>
+    <label class="row" style="gap:10px;cursor:pointer"><input type="checkbox" id="bizWa" style="width:18px;height:18px;accent-color:var(--accent)"><span>我用的是 <b>WhatsApp Business</b></span></label>
+    <p class="hint" style="margin-top:-6px" data-t="wel.biz.hint">勾选后，快捷话术改用 <b>;</b> 调出，避免和 WhatsApp Business 自带的“/”快捷回复冲突。以后可以在设置里改。</p>
     <div class="note" id="dsNote" hidden>提示：“商机作战卡”需要 DeepSeek 的 Key，以后想用时在设置页填上即可，翻译不受影响。</div>
     <div class="nav"><button class="ghost" id="back2">上一步</button><button id="to4">完成设置</button></div>
   </section>
@@ -123,7 +125,7 @@
     <div class="tips">
       <div><kbd>自动</kbd><span>客户发来的消息，下方自动出现中文译文</span></div>
       <div><kbd>译</kbd><span>在输入框写中文，点工具条上的“译”（或按 Alt+T）变成客户的语言，黄色框里是回译，核对后自己按 Enter 发送</span></div>
-      <div><kbd>/</kbd><span>在输入框输入 / 加关键词（如 /交期）调出常用话术，自动翻译</span></div>
+      <div><kbd id="trigKbd">/</kbd><span id="trigTip">在输入框输入 / 加关键词（如 /交期）调出常用话术，自动翻译</span></div>
       <div><kbd>单</kbd><span>把当前聊天整理成商机作战卡（需要 DeepSeek Key）</span></div>
     </div>
     <div class="nav"><button class="ghost" id="openOpts">打开设置页</button><button class="big" id="openWA">打开 WhatsApp 网页</button></div>

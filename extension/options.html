@@ -208,8 +208,10 @@
 
   <div class="card">
     <div class="title">快捷话术</div>
+    <label class="row">触发键 <select id="phraseTrigger"><option value="/">/（斜杠）</option><option value=";">;（分号，WhatsApp Business 推荐）</option></select></label>
+    <p class="hint" style="margin-top:-4px">WhatsApp Business 输入“/”会调出它自带的快捷回复，和插件冲突，所以用 Business 的请选“;”。中文输入法打出的“；”也可以。任何时候都可以点工具条上的“话”调出话术。</p>
     <textarea id="phrases" style="min-height:160px" placeholder="每行一条：关键词 | 中文内容"></textarea>
-    <p class="hint" data-t="opt.phrases.hint">在 WhatsApp 输入框输入 <b>/</b> 加关键词（如 <b>/报价</b>），按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
+    <p class="hint" data-t="opt.phrases.hint">在 WhatsApp 输入框输入触发键加关键词（如 <b>/报价</b> 或 <b>;报价</b>），或点工具条上的“话”，按 Enter 选择后，插件会自动翻译成当前客户的语言并填入输入框。格式为每行“关键词 | 中文内容”，内容中的 \n 表示换行。示例中的交期、付款条件、认证等信息请改成你们公司的实际情况。</p>
   </div>
 
   <div class="card" id="usageCard">

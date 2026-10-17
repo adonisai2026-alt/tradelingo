@@ -35,7 +35,7 @@
   for (const [v, label] of WADL_QWEN_MODELS) $('qwenModel').add(new Option(tr(label), v));
 
   const CHECKS = ['enabled', 'autoIncoming', 'translateOwn', 'useContext', 'autoChatLang', 'backTranslate', 'notifyEnabled', 'digestEnabled', 'updateCheck', 'notionAuto'];
-  const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality', 'notifyWaitHours', 'digestHour', 'uiLang'];
+  const SELECTS = ['incomingEngine', 'outgoingEngine', 'incomingTarget', 'outgoingTarget', 'formality', 'notifyWaitHours', 'digestHour', 'uiLang', 'phraseTrigger'];
 
   const STATUS_IDS = { deepl: 'statusDeepl', qwen: 'statusQwen', deepseek: 'statusDeepseek' };
 

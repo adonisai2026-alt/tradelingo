@@ -1,13 +1,15 @@
 {
-  "version": "0.10.0",
-  "date": "2026-10-16",
+  "version": "0.10.1",
+  "date": "2026-10-17",
   "notes": [
-    "新增：Notion 同步，作战卡自动写入你的 Notion 数据库，手机上也能看跟进",
-    "今日跟进页可一键打开对应的 Notion 页面"
+    "修复：输入框为空时点“话”，话术框一闪就消失",
+    "修复：发图片时“添加说明”里的文字不能翻译",
+    "新增：话术触发键可选“/”或“;”，避免和 WhatsApp Business 的快捷回复冲突"
   ],
   "notes_en": [
-    "New: Notion sync. Deal cards are written to your Notion database automatically, so you can see follow-ups on your phone",
-    "Today's follow-up links to each customer's Notion page"
+    "Fixed: the Phrases button menu closed immediately when the message box was empty",
+    "Fixed: captions on images couldn't be translated",
+    "New: choose / or ; as the quick-phrase key, so it doesn't clash with WhatsApp Business quick replies"
   ],
   "download": "https://github.com/adonisai2026-alt/tradelingo/archive/refs/heads/main.zip",
   "changelog": "https://github.com/adonisai2026-alt/tradelingo/blob/main/CHANGELOG.md"

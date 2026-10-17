@@ -1,8 +1,8 @@
 // TradeLingo — 注入 WhatsApp Web：自动翻译消息 + 输入框一键翻译
-// v0.10.0：Notion 同步；v0.9.0：英文界面、WhatsApp 改版预警；v0.8.0：首次使用向导、新版本提醒、本月用量；v0.7.1：读取聊天列表未读，补上提醒盲区；v0.7.0：跟进提醒、每日早报、备份与恢复；v0.6.0：新增商机作战卡（DeepSeek）与今日跟进；v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
+// v0.10.1：“话”按钮常驻、图片说明框翻译、话术触发键可选 / 或 ;；v0.10.0：Notion 同步；v0.9.0：英文界面、WhatsApp 改版预警；v0.8.0：首次使用向导、新版本提醒、本月用量；v0.7.1：读取聊天列表未读，补上提醒盲区；v0.7.0：跟进提醒、每日早报、备份与恢复；v0.6.0：新增商机作战卡（DeepSeek）与今日跟进；v0.5.0：项目更名为 TradeLingo 并开源；v0.4.3：加固聊天识别和收发方向判断，诊断信息加入语言识别；v0.4.2：修复 Lexical 输入框中译文被追加到原文后面；v0.4.1：DeepL 不支持的语言收到时自动改用 AI；v0.4.0：按聊天记住客户语言、回译校对、快捷话术；v0.3.0：新增 Qwen-MT 引擎，三引擎轮换；v0.2.0：新增 DeepSeek AI 翻译、双引擎切换与自动备用；v0.1.2：修复引用回复时误译引用内容；v0.1.1：不再依赖 #main / footer / .message-in 等易变结构，改为多重兜底识别；新增 Alt+Shift+D 诊断
 (() => {
   'use strict';
-  const VERSION = '0.10.0';
+  const VERSION = '0.10.1';
   console.info(`[TradeLingo] v${VERSION} 已加载`);
 
   let settings = { ...WADL_DEFAULTS };
@@ -461,9 +461,28 @@
       return r.width > 100 && r.height > 0 && r.top > window.innerHeight * 0.5;
     });
     if (!cands.length) return null;
-    const inFooter = cands.find((el) => el.closest('footer'));
+    if (cands.length === 1) return cands[0];
+    // 有多个输入框时（例如发图片时的“添加说明”框盖在聊天输入框上面）：
+    // 先选正在输入的那个，再选没被挡住的，最后才按位置选
+    const active = document.activeElement;
+    const focused = active && cands.find((el) => el === active || el.contains(active));
+    if (focused && isUncovered(focused)) return focused;
+    const shown = cands.filter(isUncovered);
+    const pool = shown.length ? shown : cands;
+    const inFooter = pool.find((el) => el.closest('footer'));
     if (inFooter) return inFooter;
-    return cands.reduce((a, b) => (b.getBoundingClientRect().bottom > a.getBoundingClientRect().bottom ? b : a));
+    return pool.reduce((a, b) => (b.getBoundingClientRect().bottom > a.getBoundingClientRect().bottom ? b : a));
+  }
+
+  // 元素有没有被别的层挡住（我们自己的工具条、提示不算遮挡）
+  function isUncovered(el) {
+    const r = el.getBoundingClientRect();
+    const pts = [[r.left + Math.min(20, r.width / 2), r.top + r.height / 2], [r.left + r.width / 2, r.top + r.height / 2]];
+    return pts.some(([x, y]) => {
+      if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return false;
+      const hit = document.elementFromPoint(x, y);
+      return !!hit && (hit === el || el.contains(hit) || (hit.closest && isOurs(hit)));
+    });
   }
 
   // ---------- 发送：输入框翻译 ----------
@@ -628,6 +647,11 @@
   let phraseList = [];
   let phraseIdx = 0;
   let phraseOpen = false;
+  let phraseFrom = '';     // 'key'：输入触发键打开（内容变了就关）；'button'：点“话”打开（一直显示到选择、Esc 或点别处）
+
+  // 话术触发键：/（默认）或 ;（WhatsApp Business 用户推荐，因为 Business 的快捷回复也用 /）。中文输入法下的“；”同样有效
+  const triggerRe = () => (settings.phraseTrigger === ';' ? /^[;；](\S{0,20})$/ : /^\/(\S{0,20})$/);
+  const triggerChar = () => (settings.phraseTrigger === ';' ? ';' : '/');
 
   function parsePhrases(text) {
     return (text || '').split('\n').map((line) => {
@@ -636,10 +660,13 @@
     }).filter(Boolean);
   }
 
-  function openPhrases(query) {
+  function openPhrases(query, from) {
+    phraseFrom = from || 'key';
     const q = (query || '').toLowerCase();
     const all = parsePhrases(settings.phrases);
-    phraseList = all.filter((p) => !q || p.key.toLowerCase().includes(q) || p.text.toLowerCase().includes(q)).slice(0, 12);
+    // 关键词开头匹配的排最前，其次是关键词包含、正文包含
+    const rank = (p) => { const k = p.key.toLowerCase(); return !q ? 0 : k.startsWith(q) ? 0 : k.includes(q) ? 1 : p.text.toLowerCase().includes(q) ? 2 : 9; };
+    phraseList = all.map((p, i) => ({ p, i, r: rank(p) })).filter((x) => x.r < 9).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.p).slice(0, 12);
     if (!phraseList.length) {
       closePhrases();
       if (!all.length) toast(tr('还没有快捷话术，请在插件设置中添加'));
@@ -652,6 +679,7 @@
 
   function closePhrases() {
     phraseOpen = false;
+    phraseFrom = '';
     phraseIdx = 0;
     phraseBox.style.display = 'none';
   }
@@ -679,20 +707,22 @@
   }
 
   // 把一段中文翻译成当前客户的语言并填入输入框（话术、商机卡的起草/追问共用）
-  async function insertChinese(text, label, loadingText) {
+  // keep：输入框里已有、要保留在前面的文字（点“话”插入话术时不覆盖你已经写好的内容）
+  async function insertChinese(text, label, loadingText, keep) {
     const input = getInput();
     if (!input) { toast(tr('没有找到输入框，请先打开一个聊天'), true); return false; }
+    const join = (x) => (keep ? keep + (/\s$/.test(keep) ? '' : ' ') + x : x);
     const target = currentTarget().lang;
-    if (isMine(target)) { await replaceInput(input, text); return true; }
+    if (isMine(target)) { await replaceInput(input, join(text)); return true; }
     backSeq++;
     back = { forText: '', label, text: loadingText || tr('正在翻译…'), state: 'loading' };
     renderBack();
     const resp = await send({ type: 'translate', texts: [text], target, direction: 'outgoing' });
-    if (!resp.ok) { await replaceInput(input, text); back = null; renderBack(); toast(resp.error, true); return false; }
+    if (!resp.ok) { await replaceInput(input, join(text)); back = null; renderBack(); toast(resp.error, true); return false; }
     if (resp.note) toast(resp.note);
-    const out = resp.results[0].text;
+    const out = join(resp.results[0].text);
     await replaceInput(input, out);
-    lastOriginal = text;
+    lastOriginal = keep ? join(text) : text;
     backSeq++;
     back = { forText: norm(out), label: tr('{label}原文', { label }), text, state: 'ok' };
     renderBack();
@@ -701,8 +731,15 @@
   }
 
   async function insertPhrase(p) {
+    // 点“话”打开时，保留输入框里已经写好的文字；输入触发键打开时，替换掉“/关键词”
+    let keep = '';
+    if (phraseFrom === 'button') {
+      const input = getInput();
+      const t = input ? (input.innerText || '').replace(/\n+$/, '') : '';
+      if (t.trim() && !triggerRe().test(t)) keep = t;
+    }
     closePhrases();
-    await insertChinese(p.text, tr('话术'), tr('正在翻译“{k}”…', { k: p.key }));
+    await insertChinese(p.text, tr('话术'), tr('正在翻译“{k}”…', { k: p.key }), keep);
   }
 
   // 监听输入框：内容以 / 开头时弹出话术
@@ -713,12 +750,12 @@
     const input = getInput();
     if (!input || !settings.enabled) return;
     const t = (input.innerText || '').replace(/\n+$/, '');
-    const m = t.match(/^\/(\S{0,20})$/);
+    const m = t.match(triggerRe());
     if (m) {
-      if (!phraseOpen || lastSlash !== m[1]) { if (lastSlash !== m[1]) phraseIdx = 0; lastSlash = m[1]; openPhrases(m[1]); }
+      if (!phraseOpen || phraseFrom !== 'key' || lastSlash !== m[1]) { if (lastSlash !== m[1]) phraseIdx = 0; lastSlash = m[1]; openPhrases(m[1], 'key'); }
     } else {
       lastSlash = null;
-      if (phraseOpen) closePhrases();
+      if (phraseOpen && phraseFrom === 'key') closePhrases();
     }
     if (back) renderBack();
   }
@@ -760,7 +797,7 @@
     for (const l of WADL_LANGS) langSel.add(new Option(tlLangOption(l), l[0]));
     if (v) langSel.value = v;
     phBtn.textContent = tr('话');
-    phBtn.title = tr('快捷话术（也可在输入框输入 / 调出）');
+    phBtn.title = tr('快捷话术（也可在输入框输入 {k} 调出）', { k: triggerChar() });
     if (!busy) goBtn.textContent = tr('译');
     goBtn.title = tr('翻译输入框内容（Alt+T）');
     undoBtn.textContent = tr('↩ 原文');
@@ -774,7 +811,11 @@
   document.body.append(bar, backBox, phraseBox);
 
   [engBtn, goBtn, undoBtn, phBtn].forEach((b) => b.addEventListener('mousedown', (e) => e.preventDefault()));
-  phBtn.addEventListener('click', () => { if (phraseOpen) closePhrases(); else { phraseIdx = 0; lastSlash = null; openPhrases(''); } });
+  phBtn.addEventListener('click', () => { if (phraseOpen) closePhrases(); else { phraseIdx = 0; lastSlash = null; openPhrases('', 'button'); } });
+  // 点“话”打开的话术框：点页面其他地方就关闭
+  document.addEventListener('mousedown', (e) => {
+    if (phraseOpen && phraseFrom === 'button' && !phraseBox.contains(e.target) && !phBtn.contains(e.target)) closePhrases();
+  }, true);
   engBtn.addEventListener('click', () => {
     const next = otherEngine(settings.outgoingEngine);
     if (next) chrome.storage.local.set({ outgoingEngine: next });
@@ -844,7 +885,7 @@
     engBtn.classList.toggle('wadl-eng-ai', eng === 'deepseek');
     engBtn.classList.toggle('wadl-eng-qwen', eng === 'qwen');
     engBtn.title = tr('发送翻译引擎：{e}（点击切换）', { e: engineName(settings.outgoingEngine) });
-    if (!norm(input.innerText)) { lastOriginal = null; if (back) { back = null; backSeq++; } if (phraseOpen) closePhrases(); }
+    if (!norm(input.innerText)) { lastOriginal = null; if (back) { back = null; backSeq++; } if (phraseOpen && phraseFrom === 'key') closePhrases(); }
     undoBtn.style.display = lastOriginal != null ? '' : 'none';
     phBtn.style.display = settings.phrases && settings.phrases.trim() ? '' : 'none';
     if (back) renderBack(); else positionFloating();
@@ -1082,6 +1123,7 @@
       settings[k] = changes[k].newValue;
       if (RESET_KEYS.includes(k)) needReset = true;
       if (k === 'uiLang') { tlSetUiLang(settings.uiLang); applyLabels(); needReset = true; }
+      if (k === 'phraseTrigger') { applyLabels(); if (phraseOpen && phraseFrom === 'key') closePhrases(); }
     }
     if (needReset) { resetAll(); scan(); }
     updateBar();

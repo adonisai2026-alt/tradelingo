@@ -24,6 +24,7 @@ var WADL_DEFAULTS = {
   digestHour: 9,                 // 早报时间（几点之后第一次检查时发送）
   updateCheck: true,             // 每天检查一次 GitHub 上有没有新版本
   uiLang: 'auto',                // 界面语言：auto（跟随浏览器）/ zh / en
+  phraseTrigger: '/',            // 快捷话术触发键：/ 或 ;（WhatsApp Business 的快捷回复也用 /，Business 用户建议选 ;）
   notionToken: '',               // Notion 内部连接密钥（ntn_…）
   notionAuto: true,              // 作战卡有变化时自动同步到 Notion
   // 快捷话术：每行 “关键词 | 中文内容”，在输入框输入 / 调出

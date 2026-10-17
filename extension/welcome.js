@@ -129,6 +129,7 @@
     $('outT').add(new Option(tlLangOption(l), l[0]));
   }
   chrome.storage.local.get(WADL_DEFAULTS).then((s) => {
+    $('bizWa').checked = s.phraseTrigger === ';';
     // 英文界面：默认把客户消息译成英语
     $('inT').value = EN && s.incomingTarget === WADL_DEFAULTS.incomingTarget ? 'EN-US' : s.incomingTarget;
     $('outT').value = s.outgoingTarget;
@@ -146,10 +147,15 @@
       incomingEngine: pick(['deepl', 'qwen', 'deepseek']),
       outgoingEngine: pick(['qwen', 'deepl', 'deepseek']),
       uiLang: TL_LANG,
+      phraseTrigger: $('bizWa').checked ? ';' : '/',
       wadlWelcomeDone: true,
       // 英文界面且还没改过示例话术：换成英文示例
       ...(EN && s.phrases === WADL_DEFAULTS.phrases ? { phrases: TL_PHRASES_EN } : {})
     });
+    if ($('bizWa').checked) {
+      $('trigKbd').textContent = ';';
+      $('trigTip').textContent = tr('在输入框输入 ; 加关键词（如 ;交期）调出常用话术，自动翻译');
+    }
     go(4);
   });
 
